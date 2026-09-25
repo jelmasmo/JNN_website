@@ -11,6 +11,13 @@ import tsConfigPaths from "vite-tsconfig-paths";
 // dont la base D1) sous Miniflare même en `vite dev` — sans lui, les
 // fonctions serveur ne voient aucune base de données en local.
 export default defineConfig({
+  // "cloudflare:workers" est un module virtuel fourni par le runtime
+  // Cloudflare — il n'existe pas comme paquet npm, donc on dit à Vite de
+  // ne jamais essayer de le pré-bundler (sinon : "Failed to resolve
+  // dependency: cloudflare:workers").
+  optimizeDeps: {
+    exclude: ["cloudflare:workers"],
+  },
   plugins: [
     tsConfigPaths(),
     cloudflare({ viteEnvironment: { name: "ssr" } }),
