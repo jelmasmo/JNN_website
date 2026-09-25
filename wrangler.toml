@@ -1,14 +1,17 @@
 name = "jnn-website"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
-# "main" doit pointer sur le fichier produit par la construction (voir
-# npm run build) — nécessaire pour que "wrangler dev"/"wrangler deploy"
-# sache quel Worker faire tourner. Attention : NE PAS supprimer le
-# dossier dist/ avant de reconstruire — le plugin vérifie que ce fichier
-# existe déjà au tout début de la construction ; le supprimer casse ce
-# contrôle. Une construction normale (sans rm -rf dist avant) le
-# remplace proprement par la version à jour.
-main = "dist/server/server.js"
+# Pas de "main" ici : @cloudflare/vite-plugin le déduit lui-même de
+# l'environnement "ssr" au moment de la construction, et régénère un
+# wrangler.json correct dans dist/ (avec le bon "main") à chaque build.
+# Le fixer nous-mêmes ici crée un problème d'œuf-et-poule (le fichier
+# n'existe pas avant la construction) sans rien apporter.
+#
+# Pour le développement local : utiliser "npm run dev" (vite dev), qui
+# fait tourner le Worker sous Miniflare directement, bindings compris
+# (D1, etc). PAS besoin de "npm run build" + "wrangler dev" séparément —
+# c'était la source de toute la confusion précédente.
+#
 # run_worker_first : sans lui, Cloudflare répond 404 lui-même pour toute
 # page qui n'est pas un fichier statique, avant même que notre
 # application n'ait la main.
