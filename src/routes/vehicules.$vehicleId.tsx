@@ -1,6 +1,12 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { getVehicleById } from "~/server/functions";
+import { getVehicleById, recordVehicleEvent } from "~/server/functions";
 import { powerLabel } from "~/lib/power";
+import { fmtKm, fmtPrice, OWNER } from "~/lib/config";
+import { VehiclePhoto } from "~/components/CarPlaceholder";
+import { Header } from "~/components/Header";
+import { Footer } from "~/components/Footer";
+import { useHasAdminToken } from "~/lib/adminSession";
 
 export const Route = createFileRoute("/vehicules/$vehicleId")({
   loader: async ({ params }) => {
@@ -13,28 +19,143 @@ export const Route = createFileRoute("/vehicules/$vehicleId")({
 
 function VehiclePage() {
   const { vehicle } = Route.useLoaderData();
+  const [index, setIndex] = useState(0);
+  const [extraMsg, setExtraMsg] = useState("");
+  const isAdmin = useHasAdminToken();
+  const imgs = vehicle.images && vehicle.images.length ? vehicle.images : ["placeholder"];
+
+  useEffect(() => {
+    recordVehicleEvent({ data: { vehicleId: vehicle.id, field: "views" } }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vehicle.id]);
+
+  function link() {
+    return typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "";
+  }
+
+  function contact(kind: "wa" | "mail") {
+    recordVehicleEvent({ data: { vehicleId: vehicle.id, field: "contacts" } }).catch(() => {});
+    const extra = extraMsg.trim();
+    if (kind === "wa") {
+      let msg = `Bonjour, je suis intéressé(e) par le véhicule ${vehicle.title} (${fmtPrice(vehicle.price)}) : ${link()}`;
+      if (extra) msg += `\n\n${extra}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+    } else {
+      let body = `Bonjour,\n\nJe souhaite avoir plus d'informations sur ce véhicule :\n${vehicle.title} — ${fmtPrice(vehicle.price)}\n${link()}`;
+      if (extra) body += `\n\n${extra}`;
+      window.location.href = `mailto:${OWNER.email}?subject=${encodeURIComponent(
+        "Intéressé par " + vehicle.title + " — Réf. " + vehicle.id
+      )}&body=${encodeURIComponent(body)}`;
+    }
+  }
 
   return (
-    <main>
-      <Link to="/">← Retour au stock</Link>
-      <h1>{vehicle.title}</h1>
-      <p>{vehicle.sub}</p>
-      <ul>
-        <li>Première immatriculation : {vehicle.first_reg}</li>
-        <li>Kilométrage : {vehicle.km.toLocaleString("fr-BE")} km</li>
-        <li>Carburant : {vehicle.fuel}</li>
-        <li>Boîte : {vehicle.gearbox}</li>
-        <li>Puissance : {powerLabel(vehicle.kw)}</li>
-        <li>Couleur : {vehicle.color}</li>
-      </ul>
-      <p className="price">{vehicle.price.toLocaleString("fr-BE")} €</p>
-      <p>{vehicle.description}</p>
-      <h3>Équipements</h3>
-      <ul>
-        {vehicle.options.map((o) => (
-          <li key={o}>{o}</li>
-        ))}
-      </ul>
-    </main>
+    <>
+      <Header />
+      <main className="vehicle-page">
+        <div className="wrap">
+          <Link to="/" className="back-link">
+            ← Retour au stock
+          </Link>
+          <div className="vehicle-grid">
+            <div>
+              <div className="gallery-main">
+                <VehiclePhoto src={imgs[index]} />
+                <span className="idx">
+                  Photo {index + 1} / {imgs.length}
+                </span>
+                {imgs.length > 1 && (
+                  <div className="gallery-nav">
+                    <button onClick={() => setIndex((i) => (i - 1 + imgs.length) % imgs.length)}>‹</button>
+                    <button onClick={() => setIndex((i) => (i + 1) % imgs.length)}>›</button>
+                  </div>
+                )}
+              </div>
+              {imgs.length > 1 && (
+                <div className="thumb-row">
+                  {imgs.map((im, i) => (
+                    <div key={i} className={`thumb${i === index ? " active" : ""}`} onClick={() => setIndex(i)}>
+                      <VehiclePhoto src={im} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-info">
+              <h1 style={{ fontSize: 24, marginBottom: 4 }}>{vehicle.title}</h1>
+              <p style={{ color: "var(--cream-dim)", fontSize: 15, marginBottom: 14 }}>{vehicle.sub}</p>
+              <div className="modal-price">{fmtPrice(vehicle.price)}</div>
+              <table className="spec-table">
+                <tbody>
+                  <tr>
+                    <td>Référence</td>
+                    <td>{vehicle.id}</td>
+                  </tr>
+                  <tr>
+                    <td>Mise en circulation</td>
+                    <td>{vehicle.first_reg}</td>
+                  </tr>
+                  <tr>
+                    <td>Kilométrage</td>
+                    <td>{fmtKm(vehicle.km)}</td>
+                  </tr>
+                  <tr>
+                    <td>Carburant</td>
+                    <td>{vehicle.fuel}</td>
+                  </tr>
+                  <tr>
+                    <td>Puissance</td>
+                    <td>{powerLabel(vehicle.kw)}</td>
+                  </tr>
+                  <tr>
+                    <td>Boîte de vitesse</td>
+                    <td>{vehicle.gearbox}</td>
+                  </tr>
+                  <tr>
+                    <td>Couleur</td>
+                    <td>{vehicle.color}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="modal-desc">
+                <strong>Description —</strong> {vehicle.description} Mise en circulation : {vehicle.first_reg}.
+              </p>
+              {vehicle.options.length > 0 && (
+                <>
+                  <span className="options-title">Équipements</span>
+                  <ul className="options-grid">
+                    {vehicle.options.map((o) => (
+                      <li key={o}>{o}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <label>Message pour le vendeur (facultatif)</label>
+              <textarea
+                className="extra-msg-box"
+                rows={2}
+                placeholder="Ex : Est-elle toujours disponible ? Puis-je passer la voir samedi ?"
+                value={extraMsg}
+                onChange={(e) => setExtraMsg(e.target.value)}
+              />
+              <div className="modal-cta">
+                <button className="btn-whatsapp" onClick={() => contact("wa")}>
+                  💬 WhatsApp
+                </button>
+                <button className="btn-mail" onClick={() => contact("mail")}>
+                  ✉ E-mail
+                </button>
+                {isAdmin && (
+                  <Link to="/admin/vehicules/$vehicleId/edit" params={{ vehicleId: vehicle.id }} className="btn-small">
+                    ✎ Modifier ce véhicule
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }

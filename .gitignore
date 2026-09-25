@@ -4,5 +4,6 @@ dist/
 src/routeTree.gen.ts
 .env
 .env.local
+.dev.vars
 *.log
 .DS_Store

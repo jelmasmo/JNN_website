@@ -25,3 +25,16 @@ binding = "DB"
 database_name = "jnn-db"
 database_id = "7147b999-ea90-419f-8da0-9fcc91e25fe7"
 migrations_dir = "migrations"
+
+# Stockage des photos (véhicules + panorama "véhicules vendus").
+# Bucket créé avec : npx wrangler r2 bucket create jnn-photos
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "jnn-photos"
+
+# URL publique du bucket, pour construire les liens <img src="...">.
+# Remplie une fois l'accès public activé (Dashboard Cloudflare → R2 →
+# jnn-photos → Settings → Public access → Allow Access → copier l'URL
+# "r2.dev", ou un domaine personnalisé si vous en branchez un).
+[vars]
+PHOTOS_PUBLIC_URL = "REMPLACER_APRES_ACCES_PUBLIC_R2"
