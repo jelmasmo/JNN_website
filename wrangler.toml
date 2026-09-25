@@ -1,21 +1,11 @@
 name = "jnn-website"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
-# Pas de "main" ici : @cloudflare/vite-plugin le déduit lui-même de
-# l'environnement "ssr" au moment de la construction, et régénère un
-# wrangler.json correct dans dist/ (avec le bon "main") à chaque build.
-# Le fixer nous-mêmes ici crée un problème d'œuf-et-poule (le fichier
-# n'existe pas avant la construction) sans rien apporter.
-#
+main = "@tanstack/react-start/server-entry"
+
 # Pour le développement local : utiliser "npm run dev" (vite dev), qui
 # fait tourner le Worker sous Miniflare directement, bindings compris
-# (D1, etc). PAS besoin de "npm run build" + "wrangler dev" séparément —
-# c'était la source de toute la confusion précédente.
-#
-# run_worker_first : sans lui, Cloudflare répond 404 lui-même pour toute
-# page qui n'est pas un fichier statique, avant même que notre
-# application n'ait la main.
-assets = { directory = "dist/client", binding = "ASSETS", run_worker_first = true }
+# (D1, etc). PAS besoin de "npm run build" + "wrangler dev" séparément.
 
 # Base de données D1 — remplace le localStorage du prototype.
 # L'ID sera rempli après la création de la base avec :
