@@ -37,4 +37,4 @@ bucket_name = "jnn-photos"
 # jnn-photos → Settings → Public access → Allow Access → copier l'URL
 # "r2.dev", ou un domaine personnalisé si vous en branchez un).
 [vars]
-PHOTOS_PUBLIC_URL = "REMPLACER_APRES_ACCES_PUBLIC_R2"
+PHOTOS_PUBLIC_URL = "https://pub-e2eefd8a21594413947121065282cc97.r2.dev"
