@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.0.0",
-    "@cloudflare/workers-types": "^4.20250101.0",
+    "@cloudflare/workers-types": "^5.0.0",
     "@tanstack/react-router": "^1.121.0",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.7.2",
