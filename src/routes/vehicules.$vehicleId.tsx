@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { getVehicleById, recordVehicleEvent } from "~/server/functions";
 import { powerLabel } from "~/lib/power";
@@ -23,6 +23,22 @@ function VehiclePage() {
   const [extraMsg, setExtraMsg] = useState("");
   const isAdmin = useHasAdminToken();
   const imgs = vehicle.images && vehicle.images.length ? vehicle.images : ["placeholder"];
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  function goTo(i: number) {
+    const el = trackRef.current;
+    if (!el) return;
+    const clamped = (i + imgs.length) % imgs.length;
+    el.scrollTo({ left: clamped * el.clientWidth, behavior: "smooth" });
+    setIndex(clamped);
+  }
+
+  function handleTrackScroll() {
+    const el = trackRef.current;
+    if (!el || el.clientWidth === 0) return;
+    const i = Math.round(el.scrollLeft / el.clientWidth);
+    setIndex(Math.max(0, Math.min(imgs.length - 1, i)));
+  }
 
   useEffect(() => {
     recordVehicleEvent({ data: { vehicleId: vehicle.id, field: "views" } }).catch(() => {});
@@ -60,21 +76,27 @@ function VehiclePage() {
           <div className="vehicle-grid">
             <div>
               <div className="gallery-main">
-                <VehiclePhoto src={imgs[index]} />
+                <div className="gallery-track" ref={trackRef} onScroll={handleTrackScroll}>
+                  {imgs.map((im, i) => (
+                    <div className="gallery-slide" key={i}>
+                      <VehiclePhoto src={im} />
+                    </div>
+                  ))}
+                </div>
                 <span className="idx">
                   Photo {index + 1} / {imgs.length}
                 </span>
                 {imgs.length > 1 && (
                   <div className="gallery-nav">
-                    <button onClick={() => setIndex((i) => (i - 1 + imgs.length) % imgs.length)}>‹</button>
-                    <button onClick={() => setIndex((i) => (i + 1) % imgs.length)}>›</button>
+                    <button onClick={() => goTo(index - 1)}>‹</button>
+                    <button onClick={() => goTo(index + 1)}>›</button>
                   </div>
                 )}
               </div>
               {imgs.length > 1 && (
                 <div className="thumb-row">
                   {imgs.map((im, i) => (
-                    <div key={i} className={`thumb${i === index ? " active" : ""}`} onClick={() => setIndex(i)}>
+                    <div key={i} className={`thumb${i === index ? " active" : ""}`} onClick={() => goTo(i)}>
                       <VehiclePhoto src={im} />
                     </div>
                   ))}

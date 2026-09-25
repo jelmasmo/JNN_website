@@ -97,8 +97,15 @@ section{padding:80px 0;}
 .car-card:hover{border-color:var(--brass-dim);}
 .car-photo{aspect-ratio:4/3;position:relative;overflow:hidden;background:linear-gradient(135deg,#33506b,#1e2f40);}
 .car-photo img{width:100%;height:100%;object-fit:cover;}
-.car-photo .plate-tag{position:absolute;top:12px;left:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;background:rgba(18,21,26,0.75);color:var(--cream);padding:4px 9px;border-radius:2px;z-index:2;}
-.car-photo .badge{position:absolute;top:12px;right:12px;background:var(--brass);color:var(--text-dark);font-size:11px;font-weight:600;padding:4px 9px;border-radius:2px;text-transform:uppercase;letter-spacing:0.05em;z-index:2;}
+.car-photo-track{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.car-photo-track::-webkit-scrollbar{display:none;}
+.car-photo-slide{flex:0 0 100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;}
+.car-photo-slide img{width:100%;height:100%;object-fit:cover;}
+.car-photo-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none;z-index:2;}
+.car-photo-dots .dot{width:5px;height:5px;border-radius:50%;background:rgba(242,237,226,0.45);transition:all .15s;}
+.car-photo-dots .dot.active{background:var(--brass);width:14px;border-radius:3px;}
+.car-photo .plate-tag{position:absolute;top:12px;left:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;background:rgba(18,21,26,0.75);color:var(--cream);padding:4px 9px;border-radius:2px;z-index:2;pointer-events:none;}
+.car-photo .badge{position:absolute;top:12px;right:12px;background:var(--brass);color:var(--text-dark);font-size:11px;font-weight:600;padding:4px 9px;border-radius:2px;text-transform:uppercase;letter-spacing:0.05em;z-index:2;pointer-events:none;}
 .admin-tools{position:absolute;bottom:10px;right:10px;display:flex;gap:6px;z-index:5;}
 .admin-tools a,.admin-tools button{width:30px;height:30px;border-radius:50%;background:rgba(18,21,26,0.85);color:var(--cream);font-size:14px;display:flex;align-items:center;justify-content:center;}
 .admin-tools a:hover,.admin-tools button:hover{background:var(--brass);color:var(--text-dark);}
@@ -119,7 +126,11 @@ section{padding:80px 0;}
 .vehicle-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:0;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
 .gallery-main{aspect-ratio:4/3;position:relative;overflow:hidden;background:linear-gradient(135deg,#33506b,#1e2f40);}
 .gallery-main img{width:100%;height:100%;object-fit:cover;}
-.gallery-main .idx{position:absolute;bottom:14px;left:14px;font-family:'IBM Plex Mono',monospace;font-size:12px;background:rgba(18,21,26,0.7);padding:4px 9px;border-radius:2px;z-index:2;}
+.gallery-track{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.gallery-track::-webkit-scrollbar{display:none;}
+.gallery-slide{flex:0 0 100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;}
+.gallery-slide img{width:100%;height:100%;object-fit:cover;}
+.gallery-main .idx{position:absolute;bottom:14px;left:14px;font-family:'IBM Plex Mono',monospace;font-size:12px;background:rgba(18,21,26,0.7);padding:4px 9px;border-radius:2px;z-index:2;pointer-events:none;}
 .gallery-nav{position:absolute;top:50%;transform:translateY(-50%);width:100%;display:flex;justify-content:space-between;padding:0 10px;}
 .gallery-nav button{background:rgba(18,21,26,0.6);color:var(--cream);width:34px;height:34px;border-radius:50%;font-size:16px;display:flex;align-items:center;justify-content:center;}
 .gallery-nav button:hover{background:var(--brass);color:var(--text-dark);}
