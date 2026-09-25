@@ -94,26 +94,56 @@ export function createVehicle(input: VehicleInput) {
 /**
  * Met à jour un véhicule existant (ne change pas sa position). `originalId`
  * est la référence AVANT modification — nécessaire car la référence
- * elle-même est modifiable : on retrouve la ligne par son ancien id, on la
- * renomme si besoin, et on répercute le changement vers `vehicle_stats`
- * (qui pointe vers cette référence) pour ne pas perdre les statistiques.
+ * elle-même est modifiable.
+ *
+ * Cas courant (référence inchangée) : simple UPDATE du contenu.
+ *
+ * Cas renommage : on ne touche JAMAIS directement à `vehicles.id` par un
+ * UPDATE — `vehicle_stats.vehicle_id` la référence par clé étrangère, et
+ * D1/SQLite refuse un UPDATE de la clé primaire référencée ailleurs (erreur
+ * FOREIGN KEY constraint failed), même pour la réécrire avec la même
+ * valeur. On insère donc une nouvelle ligne sous le nouvel id, on bascule
+ * les stats vers cette nouvelle référence, puis on supprime l'ancienne
+ * ligne (elle n'a alors plus aucune ligne enfant qui pointe vers elle).
  */
 export function updateVehicle(originalId: string, input: VehicleInput) {
   return Effect.gen(function* () {
+    if (input.id === originalId) {
+      yield* run(
+        `UPDATE vehicles SET
+          title=?, sub=?, type=?, first_reg=?, km=?, fuel=?, gearbox=?, kw=?, color=?,
+          price=?, description=?, options_json=?, images_json=?, updated_at=datetime('now')
+         WHERE id=?`,
+        [
+          input.title, input.sub, input.type, input.first_reg, input.km, input.fuel,
+          input.gearbox, input.kw, input.color, input.price, input.description,
+          JSON.stringify(input.options), JSON.stringify(input.images), originalId,
+        ]
+      );
+      return;
+    }
+
+    const rows = yield* query<{ position: number; sold_at: string | null; created_at: string }>(
+      "SELECT position, sold_at, created_at FROM vehicles WHERE id = ?",
+      [originalId]
+    );
+    const existingRow = rows[0];
+    if (!existingRow) {
+      throw new Error(`Véhicule "${originalId}" introuvable.`);
+    }
     yield* run(
-      `UPDATE vehicles SET
-        id=?, title=?, sub=?, type=?, first_reg=?, km=?, fuel=?, gearbox=?, kw=?, color=?,
-        price=?, description=?, options_json=?, images_json=?, updated_at=datetime('now')
-       WHERE id=?`,
+      `INSERT INTO vehicles
+        (id, title, sub, type, first_reg, km, fuel, gearbox, kw, color, price, description, options_json, images_json, position, sold_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
       [
         input.id, input.title, input.sub, input.type, input.first_reg, input.km, input.fuel,
         input.gearbox, input.kw, input.color, input.price, input.description,
-        JSON.stringify(input.options), JSON.stringify(input.images), originalId,
+        JSON.stringify(input.options), JSON.stringify(input.images),
+        existingRow.position, existingRow.sold_at, existingRow.created_at,
       ]
     );
-    if (input.id !== originalId) {
-      yield* run("UPDATE vehicle_stats SET vehicle_id = ? WHERE vehicle_id = ?", [input.id, originalId]);
-    }
+    yield* run("UPDATE vehicle_stats SET vehicle_id = ? WHERE vehicle_id = ?", [input.id, originalId]);
+    yield* run("DELETE FROM vehicles WHERE id = ?", [originalId]);
   });
 }
 
