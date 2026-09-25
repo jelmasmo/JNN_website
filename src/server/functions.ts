@@ -7,6 +7,7 @@ import { runWithDb } from "./runtime";
 import { checkCredentials, issueToken, verifyToken, setPassword, hashPassword } from "./auth";
 import { uploadPhotoToR2, listSoldPhotos, addSoldPhoto, removeSoldPhoto } from "./photos";
 import { bumpStat as bumpStatEffect, listStats } from "./stats";
+import { getSettings, updateSettings } from "./settings";
 
 // Fonctions serveur TanStack Start : appelées comme de simples fonctions
 // async depuis les composants React, mais exécutées côté Worker
@@ -52,6 +53,11 @@ export const getAllReviews = createServerFn({ method: "GET" }).handler(async () 
 
 export const getFeaturedReviews = createServerFn({ method: "GET" }).handler(async () => {
   return runWithDb(db(), listFeaturedReviews);
+});
+
+/** Coordonnées de contact (téléphone, e-mail, adresse) — lecture publique. */
+export const getSiteSettings = createServerFn({ method: "GET" }).handler(async () => {
+  return runWithDb(db(), getSettings);
 });
 
 export const recordVehicleEvent = createServerFn({ method: "POST" })
@@ -144,6 +150,14 @@ export const adminGetStats = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await assertAdmin(data.token);
     return runWithDb(db(), listStats());
+  });
+
+export const adminUpdateSettings = createServerFn({ method: "POST" })
+  .validator((data: { token: string; phone: string; email: string; address: string }) => data)
+  .handler(async ({ data }) => {
+    await assertAdmin(data.token);
+    await runWithDb(db(), updateSettings({ phone: data.phone, email: data.email, address: data.address }));
+    return { ok: true };
   });
 
 /* ---------- ADMIN : photos (véhicules + panorama "vendus") ---------- */

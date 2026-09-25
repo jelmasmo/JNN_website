@@ -1,10 +1,11 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { OWNER } from "~/lib/config";
 import { useHasAdminToken, clearAdminToken } from "~/lib/adminSession";
+import { useSiteSettings } from "~/lib/siteSettings";
 import { showToast } from "~/lib/toast";
 
 export function Footer() {
   const isAdmin = useHasAdminToken();
+  const settings = useSiteSettings();
   const router = useRouter();
 
   function logout() {
@@ -16,7 +17,7 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <div className="wrap" style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-        <span>© JNN — {OWNER.address}</span>
+        <span>© JNN — {settings.address}</span>
         {!isAdmin && <Link to="/admin/login">Espace professionnel</Link>}
         {isAdmin && <Link to="/admin/dashboard">Tableau de bord</Link>}
         {isAdmin && <Link to="/admin/sold-photos">📷 Photos véhicules vendus</Link>}

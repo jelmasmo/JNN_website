@@ -6,12 +6,13 @@ import {
   adminDeleteVehicle,
   adminListSoldPhotos,
 } from "~/server/functions";
-import { FILTERS, OWNER } from "~/lib/config";
+import { FILTERS } from "~/lib/config";
 import { VehicleCard } from "~/components/VehicleCard";
 import { Header } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 import { BizCardSection } from "~/components/BizCardSection";
 import { useHasAdminToken, getAdminToken } from "~/lib/adminSession";
+import { useSiteSettings } from "~/lib/siteSettings";
 import { showToast } from "~/lib/toast";
 import type { VehicleView } from "~/server/vehicles";
 
@@ -32,6 +33,7 @@ function HomePage() {
   const [vehicles, setVehicles] = useState<VehicleView[]>(initialVehicles);
   const [activeFilter, setActiveFilter] = useState<string>("tous");
   const isAdmin = useHasAdminToken();
+  const settings = useSiteSettings();
 
   const list = vehicles.filter((v) => activeFilter === "tous" || v.type === activeFilter);
   const photos = soldPhotos.map((p) => p.url);
@@ -69,7 +71,7 @@ function HomePage() {
           )}
           <div className="wrap hero-grid">
             <div>
-              <span className="eyebrow">Vendeur professionnel — {OWNER.address}</span>
+              <span className="eyebrow">Vendeur professionnel — {settings.address}</span>
               <h1>
                 Des occasions choisies.
                 <br />
@@ -241,13 +243,13 @@ function HomePage() {
               <div className="contact-line">
                 <div>
                   <strong>Adresse</strong>
-                  {OWNER.address}
+                  {settings.address}
                 </div>
               </div>
               <div className="contact-line">
                 <div>
                   <strong>Téléphone</strong>
-                  <a href={`tel:${OWNER.phone.replace(/[^0-9+]/g, "")}`}>{OWNER.phone}</a>
+                  <a href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}>{settings.phone}</a>
                 </div>
               </div>
               <div className="contact-line">
@@ -262,13 +264,13 @@ function HomePage() {
             </div>
             <div className="map-box">
               <iframe
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(OWNER.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(settings.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title={`Localisation JNN — ${OWNER.address}`}
+                title={`Localisation JNN — ${settings.address}`}
               />
             </div>
           </div>

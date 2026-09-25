@@ -285,6 +285,13 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
         <button className="btn-primary" type="submit" disabled={saving || uploading}>
           💾 {saving ? "Enregistrement..." : "Enregistrer"}
         </button>
+        <button
+          type="button"
+          className="btn-small"
+          onClick={() => router.navigate({ to: "/admin/dashboard" })}
+        >
+          ✕ Annuler
+        </button>
         {existing && (
           <>
             <button type="button" className="btn-small" onClick={handleMarkSold}>

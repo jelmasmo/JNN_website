@@ -33,6 +33,11 @@ nav a,nav button{opacity:0.8;border-bottom:1px solid transparent;padding-bottom:
 nav a:hover,nav button:hover{opacity:1;border-color:var(--brass);}
 .call-btn{background:var(--brass);color:var(--text-dark);padding:10px 20px;font-weight:600;font-size:14px;letter-spacing:0.03em;border-radius:2px;display:flex;align-items:center;gap:8px;white-space:nowrap;}
 .call-btn:hover{background:#d9ac47;}
+.contact-dropdown{position:relative;}
+.dropdown-backdrop{position:fixed;inset:0;z-index:60;}
+.contact-dropdown-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:61;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px;display:flex;flex-direction:column;min-width:220px;box-shadow:0 12px 30px rgba(0,0,0,0.4);}
+.contact-dropdown-panel a{display:flex;align-items:center;gap:8px;padding:10px 12px;font-size:13.5px;color:var(--cream);border-radius:2px;white-space:nowrap;}
+.contact-dropdown-panel a:hover{background:var(--panel-2);color:var(--brass);}
 .icon-btn{width:44px;height:44px;flex:none;border-radius:6px;background:#2fae5e;display:flex;align-items:center;justify-content:center;}
 .icon-btn:hover{background:#26964f;}
 .icon-btn svg{width:22px;height:22px;}

@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { getVehicleById, recordVehicleEvent } from "~/server/functions";
 import { powerLabel } from "~/lib/power";
-import { fmtKm, fmtPrice, OWNER } from "~/lib/config";
+import { fmtKm, fmtPrice } from "~/lib/config";
 import { VehiclePhoto } from "~/components/CarPlaceholder";
 import { Header } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 import { useHasAdminToken } from "~/lib/adminSession";
+import { useSiteSettings } from "~/lib/siteSettings";
 
 export const Route = createFileRoute("/vehicules/$vehicleId")({
   loader: async ({ params }) => {
@@ -22,6 +23,7 @@ function VehiclePage() {
   const [index, setIndex] = useState(0);
   const [extraMsg, setExtraMsg] = useState("");
   const isAdmin = useHasAdminToken();
+  const settings = useSiteSettings();
   const imgs = vehicle.images && vehicle.images.length ? vehicle.images : ["placeholder"];
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -55,11 +57,14 @@ function VehiclePage() {
     if (kind === "wa") {
       let msg = `Bonjour, je suis intéressé(e) par le véhicule ${vehicle.title} (${fmtPrice(vehicle.price)}) : ${link()}`;
       if (extra) msg += `\n\n${extra}`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+      window.open(
+        `https://wa.me/${settings.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`,
+        "_blank"
+      );
     } else {
       let body = `Bonjour,\n\nJe souhaite avoir plus d'informations sur ce véhicule :\n${vehicle.title} — ${fmtPrice(vehicle.price)}\n${link()}`;
       if (extra) body += `\n\n${extra}`;
-      window.location.href = `mailto:${OWNER.email}?subject=${encodeURIComponent(
+      window.location.href = `mailto:${settings.email}?subject=${encodeURIComponent(
         "Intéressé par " + vehicle.title + " — Réf. " + vehicle.id
       )}&body=${encodeURIComponent(body)}`;
     }

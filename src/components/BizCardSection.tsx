@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { OWNER } from "~/lib/config";
+import { useSiteSettings, type SiteSettings } from "~/lib/siteSettings";
 import { showToast } from "~/lib/toast";
 
-function vcfContent(): string {
-  return `BEGIN:VCARD\nVERSION:3.0\nFN:${OWNER.name} - JNN\nORG:JNN\nTITLE:${OWNER.role}\nTEL;TYPE=CELL:${OWNER.phone}\nEMAIL:${OWNER.email}\nADR:;;${OWNER.address};;;;\nURL:${OWNER.website}\nEND:VCARD`;
+function vcfContent(settings: SiteSettings): string {
+  return `BEGIN:VCARD\nVERSION:3.0\nFN:${OWNER.name} - JNN\nORG:JNN\nTITLE:${OWNER.role}\nTEL;TYPE=CELL:${settings.phone}\nEMAIL:${settings.email}\nADR:;;${settings.address};;;;\nURL:${OWNER.website}\nEND:VCARD`;
 }
 
 export function BizCardSection() {
+  const settings = useSiteSettings();
   const [open, setOpen] = useState(false);
   const [waNumber, setWaNumber] = useState("");
   const [email, setEmail] = useState("");
@@ -15,7 +17,7 @@ export function BizCardSection() {
     const num = waNumber.replace(/[^0-9+]/g, "");
     if (!num) return showToast("Entrez le numéro WhatsApp du client.", true);
     const text = encodeURIComponent(
-      `Bonjour, voici mes coordonnées :\n${OWNER.name} — ${OWNER.role}\nJNN, ${OWNER.address}\nTél : ${OWNER.phone}\nE-mail : ${OWNER.email}\n${OWNER.website}`
+      `Bonjour, voici mes coordonnées :\n${OWNER.name} — ${OWNER.role}\nJNN, ${settings.address}\nTél : ${settings.phone}\nE-mail : ${settings.email}\n${OWNER.website}`
     );
     window.open(`https://wa.me/${num.replace("+", "")}?text=${text}`, "_blank");
   }
@@ -24,13 +26,13 @@ export function BizCardSection() {
     if (!email.trim()) return showToast("Entrez l'e-mail du client.", true);
     const subject = encodeURIComponent("Coordonnées JNN — véhicules d'occasion");
     const body = encodeURIComponent(
-      `Bonjour,\n\nVoici mes coordonnées :\n${OWNER.name} — ${OWNER.role}\nJNN, ${OWNER.address}\nTél : ${OWNER.phone}\nE-mail : ${OWNER.email}\n${OWNER.website}\n\nÀ bientôt !`
+      `Bonjour,\n\nVoici mes coordonnées :\n${OWNER.name} — ${OWNER.role}\nJNN, ${settings.address}\nTél : ${settings.phone}\nE-mail : ${settings.email}\n${OWNER.website}\n\nÀ bientôt !`
     );
     window.location.href = `mailto:${email.trim()}?subject=${subject}&body=${body}`;
   }
 
   function downloadVcf() {
-    const blob = new Blob([vcfContent()], { type: "text/vcard" });
+    const blob = new Blob([vcfContent(settings)], { type: "text/vcard" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -58,13 +60,13 @@ export function BizCardSection() {
               <div className="bc-name">{OWNER.name}</div>
               <div className="bc-role">{OWNER.role}</div>
               <div className="bc-line">
-                <b>ADR</b> {OWNER.address}
+                <b>ADR</b> {settings.address}
               </div>
               <div className="bc-line">
-                <b>TEL</b> {OWNER.phone}
+                <b>TEL</b> {settings.phone}
               </div>
               <div className="bc-line">
-                <b>MAIL</b> {OWNER.email}
+                <b>MAIL</b> {settings.email}
               </div>
               <div className="bc-line">
                 <b>WEB</b> {OWNER.website}

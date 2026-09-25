@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { adminListVehicles, adminGetStats, adminChangePassword } from "~/server/functions";
+import { adminListVehicles, adminGetStats, adminChangePassword, getSiteSettings, adminUpdateSettings } from "~/server/functions";
 import { getAdminToken, setAdminToken } from "~/lib/adminSession";
 import { fmtPrice } from "~/lib/config";
 import { showToast } from "~/lib/toast";
@@ -19,6 +19,10 @@ function DashboardPage() {
   const [stats, setStats] = useState<VehicleStat[]>([]);
   const [newUser, setNewUser] = useState("");
   const [newPass, setNewPass] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     const token = getAdminToken();
@@ -26,10 +30,13 @@ function DashboardPage() {
       router.navigate({ to: "/admin/login" });
       return;
     }
-    Promise.all([adminListVehicles({ data: { token } }), adminGetStats({ data: { token } })])
-      .then(([v, s]) => {
+    Promise.all([adminListVehicles({ data: { token } }), adminGetStats({ data: { token } }), getSiteSettings()])
+      .then(([v, s, settings]) => {
         setVehicles(v);
         setStats(s);
+        setPhone(settings.phone);
+        setEmail(settings.email);
+        setAddress(settings.address);
       })
       .catch((err) => {
         showToast(err instanceof Error ? err.message : "Session expirée, reconnectez-vous.", true);
@@ -37,6 +44,21 @@ function DashboardPage() {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function saveSettings(e: FormEvent) {
+    e.preventDefault();
+    const token = getAdminToken();
+    if (!token) return;
+    setSavingSettings(true);
+    try {
+      await adminUpdateSettings({ data: { token, phone: phone.trim(), email: email.trim(), address: address.trim() } });
+      showToast("Coordonnées mises à jour.");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Échec de la mise à jour.", true);
+    } finally {
+      setSavingSettings(false);
+    }
+  }
 
   async function saveCreds(e: FormEvent) {
     e.preventDefault();
@@ -119,6 +141,29 @@ function DashboardPage() {
                 ))}
               </tbody>
             </table>
+            <div className="divider-h" />
+            <h3 style={{ fontSize: 18, marginBottom: 10 }}>Coordonnées de contact</h3>
+            <p style={{ color: "var(--cream-dim)", fontSize: 13, marginBottom: 4 }}>
+              Utilisées pour le bouton "Contact" (e-mail + appel), le bouton WhatsApp des fiches
+              véhicules, la carte de visite et l'adresse affichée sur le site.
+            </p>
+            <form onSubmit={saveSettings}>
+              <div className="field-row">
+                <div>
+                  <label>Numéro de téléphone</label>
+                  <input placeholder="+32 470 00 00 00" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+                <div>
+                  <label>Adresse e-mail (bouton Contact)</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+              </div>
+              <label>Adresse de la société</label>
+              <input value={address} onChange={(e) => setAddress(e.target.value)} />
+              <button className="btn-small" type="submit" disabled={savingSettings} style={{ marginTop: 14 }}>
+                {savingSettings ? "Enregistrement..." : "Enregistrer les coordonnées"}
+              </button>
+            </form>
             <div className="divider-h" />
             <h3 style={{ fontSize: 18, marginBottom: 10 }}>Changer le mot de passe</h3>
             <form onSubmit={saveCreds}>
