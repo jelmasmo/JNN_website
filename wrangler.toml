@@ -1,10 +1,8 @@
 name = "jnn-website"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
-# Pas de "main" ici : en dev (`vite dev`), le plugin @cloudflare/vite-plugin
-# fait tourner l'environnement SSR de TanStack Start directement. On
-# renseignera "main" (ou on utilisera `wrangler deploy` piloté par le
-# plugin) une fois qu'on regardera le déploiement, à l'étape suivante.
+main = "dist/server/server.js"
+assets = { directory = "dist/client", binding = "ASSETS" }
 
 # Base de données D1 — remplace le localStorage du prototype.
 # L'ID sera rempli après la création de la base avec :
