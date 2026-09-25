@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .wrangler/
+src/routeTree.gen.ts
 .env
 .env.local
 *.log
