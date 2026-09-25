@@ -9,5 +9,5 @@ pages_build_output_dir = "dist/client"
 [[d1_databases]]
 binding = "DB"
 database_name = "jnn-db"
-database_id = "REMPLACER_APRES_WRANGLER_D1_CREATE"
+database_id = "7147b999-ea90-419f-8da0-9fcc91e25fe7"
 migrations_dir = "migrations"
