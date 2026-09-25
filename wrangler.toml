@@ -1,13 +1,17 @@
 name = "jnn-website"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
-# Pas de "main" : @cloudflare/vite-plugin le déduit lui-même de
-# l'environnement "ssr" au moment de la construction (le fixer ici
-# nous-mêmes crée un problème d'œuf-et-poule : le fichier n'existe pas
-# encore avant la construction). On garde seulement "run_worker_first",
-# qui est le vrai réglage important : sans lui, Cloudflare répond 404
-# lui-même pour toute page qui n'est pas un fichier statique, avant
-# même que notre application n'ait la main.
+# "main" doit pointer sur le fichier produit par la construction (voir
+# npm run build) — nécessaire pour que "wrangler dev"/"wrangler deploy"
+# sache quel Worker faire tourner. Attention : NE PAS supprimer le
+# dossier dist/ avant de reconstruire — le plugin vérifie que ce fichier
+# existe déjà au tout début de la construction ; le supprimer casse ce
+# contrôle. Une construction normale (sans rm -rf dist avant) le
+# remplace proprement par la version à jour.
+main = "dist/server/server.js"
+# run_worker_first : sans lui, Cloudflare répond 404 lui-même pour toute
+# page qui n'est pas un fichier statique, avant même que notre
+# application n'ait la main.
 assets = { directory = "dist/client", binding = "ASSETS", run_worker_first = true }
 
 # Base de données D1 — remplace le localStorage du prototype.
