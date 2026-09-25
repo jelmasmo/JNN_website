@@ -10,7 +10,26 @@ export class D1 extends Context.Tag("D1")<D1, D1Database>() {}
 
 export class DbError {
   readonly _tag = "DbError";
-  constructor(readonly cause: unknown) {}
+  readonly message: string;
+  constructor(readonly cause: unknown) {
+    // Le message est extrait tout de suite : une fois que cette erreur
+    // traverse la frontière serveur → client (RPC TanStack Start), les
+    // propriétés non énumérables d'un vrai Error (message, stack) sont
+    // perdues lors de la sérialisation JSON. On les fige ici en une
+    // simple chaîne pour ne pas afficher "{}" côté navigateur.
+    this.message =
+      cause instanceof Error
+        ? cause.message
+        : typeof cause === "string"
+          ? cause
+          : (() => {
+              try {
+                return JSON.stringify(cause);
+              } catch {
+                return String(cause);
+              }
+            })();
+  }
 }
 
 export function query<T = unknown>(sql: string, params: unknown[] = []) {
