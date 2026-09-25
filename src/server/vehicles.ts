@@ -91,20 +91,29 @@ export function createVehicle(input: VehicleInput) {
   });
 }
 
-/** Met à jour un véhicule existant (ne change pas sa position). */
-export function updateVehicle(input: VehicleInput) {
+/**
+ * Met à jour un véhicule existant (ne change pas sa position). `originalId`
+ * est la référence AVANT modification — nécessaire car la référence
+ * elle-même est modifiable : on retrouve la ligne par son ancien id, on la
+ * renomme si besoin, et on répercute le changement vers `vehicle_stats`
+ * (qui pointe vers cette référence) pour ne pas perdre les statistiques.
+ */
+export function updateVehicle(originalId: string, input: VehicleInput) {
   return Effect.gen(function* () {
     yield* run(
       `UPDATE vehicles SET
-        title=?, sub=?, type=?, first_reg=?, km=?, fuel=?, gearbox=?, kw=?, color=?,
+        id=?, title=?, sub=?, type=?, first_reg=?, km=?, fuel=?, gearbox=?, kw=?, color=?,
         price=?, description=?, options_json=?, images_json=?, updated_at=datetime('now')
        WHERE id=?`,
       [
-        input.title, input.sub, input.type, input.first_reg, input.km, input.fuel,
+        input.id, input.title, input.sub, input.type, input.first_reg, input.km, input.fuel,
         input.gearbox, input.kw, input.color, input.price, input.description,
-        JSON.stringify(input.options), JSON.stringify(input.images), input.id,
+        JSON.stringify(input.options), JSON.stringify(input.images), originalId,
       ]
     );
+    if (input.id !== originalId) {
+      yield* run("UPDATE vehicle_stats SET vehicle_id = ? WHERE vehicle_id = ?", [input.id, originalId]);
+    }
   });
 }
 

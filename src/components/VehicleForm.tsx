@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type DragEvent, type FormEvent } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { adminSaveVehicle, adminUploadPhoto, adminDeleteVehicle, adminMarkSold } from "~/server/functions";
 import { getAdminToken } from "~/lib/adminSession";
@@ -32,6 +32,8 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
   const [images, setImages] = useState<string[]>(existing?.images?.filter((i) => i !== "placeholder") ?? []);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
 
   async function handleFiles(files: FileList | null) {
     if (!files || !files.length) return;
@@ -69,6 +71,33 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
     });
   }
 
+  function reorderImages(from: number, to: number) {
+    if (from === to) return;
+    setImages((prev) => {
+      const copy = prev.slice();
+      const [moved] = copy.splice(from, 1);
+      copy.splice(to, 0, moved);
+      return copy;
+    });
+  }
+
+  function handleDragStart(i: number) {
+    setDragIndex(i);
+  }
+  function handleDragOver(e: DragEvent<HTMLDivElement>, i: number) {
+    e.preventDefault();
+    if (i !== overIndex) setOverIndex(i);
+  }
+  function handleDrop(i: number) {
+    if (dragIndex !== null) reorderImages(dragIndex, i);
+    setDragIndex(null);
+    setOverIndex(null);
+  }
+  function handleDragEnd() {
+    setDragIndex(null);
+    setOverIndex(null);
+  }
+
   async function save(e: FormEvent) {
     e.preventDefault();
     const token = getAdminToken();
@@ -80,6 +109,7 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
         data: {
           token,
           isNew,
+          originalId: existing?.id,
           vehicle: {
             id: id.trim(),
             title: title.trim(),
@@ -140,7 +170,7 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
       <div className="field-row">
         <div>
           <label>Référence (unique)</label>
-          <input value={id} onChange={(e) => setId(e.target.value)} disabled={!isNew} />
+          <input value={id} onChange={(e) => setId(e.target.value)} />
         </div>
         <div>
           <label>Titre</label>
@@ -214,9 +244,22 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
       <label>Photos</label>
       <input type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} disabled={uploading} />
       {uploading && <div style={{ fontSize: 12, color: "var(--brass)", marginTop: 6 }}>Envoi des photos…</div>}
+      {images.length > 1 && (
+        <div style={{ fontSize: 12, color: "var(--cream-dim)", marginTop: 8 }}>
+          Glissez une photo pour la réordonner — la première sera la photo principale.
+        </div>
+      )}
       <div className="photo-input-row">
         {images.map((im, i) => (
-          <div className="photo-thumb-edit" key={im + i}>
+          <div
+            className={`photo-thumb-edit${i === overIndex && dragIndex !== null && dragIndex !== i ? " drag-over" : ""}${i === dragIndex ? " dragging" : ""}`}
+            key={im + i}
+            draggable
+            onDragStart={() => handleDragStart(i)}
+            onDragOver={(e) => handleDragOver(e, i)}
+            onDrop={() => handleDrop(i)}
+            onDragEnd={handleDragEnd}
+          >
             <div className="thumb-img-wrap">
               <span className="order-num">{i + 1}</span>
               <button type="button" className="rm" onClick={() => removeImage(i)}>
