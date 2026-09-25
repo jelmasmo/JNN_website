@@ -1,0 +1,13 @@
+name = "jnn-website"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist/client"
+
+# Base de données D1 — remplace le localStorage du prototype.
+# L'ID sera rempli après la création de la base avec :
+#   wrangler d1 create jnn-db
+[[d1_databases]]
+binding = "DB"
+database_name = "jnn-db"
+database_id = "REMPLACER_APRES_WRANGLER_D1_CREATE"
+migrations_dir = "migrations"
