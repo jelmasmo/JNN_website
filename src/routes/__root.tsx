@@ -13,6 +13,11 @@ export const Route = createRootRoute({
       return DEFAULT_SITE_SETTINGS;
     }
   },
+  // staleTime 0 : sans ça, la route racine réutilise ses données déjà
+  // chargées lors des navigations côté client, donc une modification des
+  // coordonnées dans l'admin ne se voyait pas ailleurs sur le site sans
+  // rechargement complet de la page.
+  staleTime: 0,
   head: () => ({
     meta: [
       { charSet: "utf-8" },

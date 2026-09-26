@@ -52,6 +52,7 @@ function DashboardPage() {
     setSavingSettings(true);
     try {
       await adminUpdateSettings({ data: { token, phone: phone.trim(), email: email.trim(), address: address.trim() } });
+      await router.invalidate();
       showToast("Coordonnées mises à jour.");
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Échec de la mise à jour.", true);
