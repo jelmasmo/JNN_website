@@ -54,7 +54,12 @@ export async function verifyToken(secret: string, token: string | null | undefin
   if (!token) return null;
   try {
     const decoded = Buffer.from(token, "base64url").toString("utf8");
-    const [username, expStr, sig] = decoded.split(".");
+    // Découpe depuis la fin : l'identifiant peut contenir des points,
+    // l'expiration et la signature jamais.
+    const parts = decoded.split(".");
+    const sig = parts.pop();
+    const expStr = parts.pop();
+    const username = parts.join(".");
     if (!username || !expStr || !sig) return null;
     const exp = Number(expStr);
     if (!Number.isFinite(exp) || Date.now() > exp) return null;
