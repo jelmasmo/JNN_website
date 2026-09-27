@@ -16,9 +16,11 @@ npm install
 npm test
 ```
 
-Le premier test (`tests/power.test.ts`) vérifie la conversion kW → chevaux
-utilisée sur les fiches véhicules — écrit avant même que la fonction
-existe, pour garantir que le calcul reste toujours correct.
+Le projet est développé en TDD (voir `CLAUDE.md` et
+`.claude/skills/tdd/SKILL.md`) : chaque comportement est d'abord décrit par
+un test qui échoue, puis implémenté. Les tests serveur tournent sur une
+vraie base SQLite en mémoire construite à partir des migrations
+(`tests/helpers/testDb.ts`), sans rien toucher à Cloudflare.
 
 ## Étape 3 — Créer votre compte Cloudflare et connecter Wrangler
 
