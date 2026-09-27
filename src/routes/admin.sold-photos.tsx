@@ -3,6 +3,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { adminListSoldPhotos, adminUploadPhoto, adminAddSoldPhoto, adminRemoveSoldPhoto } from "~/server/functions";
 import { getAdminToken } from "~/lib/adminSession";
 import { showToast } from "~/lib/toast";
+import { toWebCompatible } from "~/lib/imageConvert";
 import { Header } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 
@@ -43,7 +44,7 @@ function SoldPhotosPage() {
         const fd = new FormData();
         fd.set("token", token);
         fd.set("kind", "sold");
-        fd.set("file", file);
+        fd.set("file", await toWebCompatible(file));
         const { url } = await adminUploadPhoto({ data: fd });
         await adminAddSoldPhoto({ data: { token, url, position } });
         added.push({ id: -position, url, position });

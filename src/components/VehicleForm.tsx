@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { adminSaveVehicle, adminUploadPhoto, adminDeleteVehicle, adminMarkSold } from "~/server/functions";
 import { getAdminToken } from "~/lib/adminSession";
 import { showToast } from "~/lib/toast";
+import { toWebCompatible } from "~/lib/imageConvert";
 import { moveImage as moveImageInList, reorderImages as reorderImageList } from "~/lib/imageOrder";
 import { VehiclePhoto } from "~/components/CarPlaceholder";
 import type { VehicleView } from "~/server/vehicles";
@@ -47,7 +48,7 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
         const fd = new FormData();
         fd.set("token", token);
         fd.set("kind", "vehicles");
-        fd.set("file", file);
+        fd.set("file", await toWebCompatible(file));
         const res = await adminUploadPhoto({ data: fd });
         uploaded.push(res.url);
       }
