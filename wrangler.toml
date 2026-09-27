@@ -3,6 +3,15 @@ compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 main = "@tanstack/react-start/server-entry"
 
+# Nom de domaine personnalisé (acheté chez Combell, branché sur Cloudflare).
+# "custom_domain = true" fait provisionner automatiquement par Cloudflare
+# le certificat SSL et l'enregistrement DNS nécessaires au prochain
+# "npm run deploy" — rien d'autre à faire manuellement dans le dashboard.
+routes = [
+  { pattern = "jnn-drogenbos.be", custom_domain = true },
+  { pattern = "www.jnn-drogenbos.be", custom_domain = true }
+]
+
 # Pour le développement local : utiliser "npm run dev" (vite dev), qui
 # fait tourner le Worker sous Miniflare directement, bindings compris
 # (D1, etc). PAS besoin de "npm run build" + "wrangler dev" séparément.
