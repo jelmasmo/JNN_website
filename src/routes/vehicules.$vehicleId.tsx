@@ -8,6 +8,7 @@ import { Header } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 import { useHasAdminToken } from "~/lib/adminSession";
 import { useSiteSettings } from "~/lib/siteSettings";
+import { vehicleWhatsAppUrl, vehicleMailUrl } from "~/lib/contactLinks";
 
 export const Route = createFileRoute("/vehicules/$vehicleId")({
   loader: async ({ params }) => {
@@ -53,20 +54,10 @@ function VehiclePage() {
 
   function contact(kind: "wa" | "mail") {
     recordVehicleEvent({ data: { vehicleId: vehicle.id, field: "contacts" } }).catch(() => {});
-    const extra = extraMsg.trim();
     if (kind === "wa") {
-      let msg = `Bonjour, je suis intéressé(e) par le véhicule ${vehicle.title} (${fmtPrice(vehicle.price)}) : ${link()}`;
-      if (extra) msg += `\n\n${extra}`;
-      window.open(
-        `https://wa.me/${settings.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`,
-        "_blank"
-      );
+      window.open(vehicleWhatsAppUrl(vehicle, settings.phone, link(), extraMsg), "_blank");
     } else {
-      let body = `Bonjour,\n\nJe souhaite avoir plus d'informations sur ce véhicule :\n${vehicle.title} — ${fmtPrice(vehicle.price)}\n${link()}`;
-      if (extra) body += `\n\n${extra}`;
-      window.location.href = `mailto:${settings.email}?subject=${encodeURIComponent(
-        "Intéressé par " + vehicle.title + " — Réf. " + vehicle.id
-      )}&body=${encodeURIComponent(body)}`;
+      window.location.href = vehicleMailUrl(vehicle, settings.email, link(), extraMsg);
     }
   }
 

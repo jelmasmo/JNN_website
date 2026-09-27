@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { OWNER } from "~/lib/config";
-import { useSiteSettings, type SiteSettings } from "~/lib/siteSettings";
+import { useSiteSettings } from "~/lib/siteSettings";
+import { buildVCard, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
 import { showToast } from "~/lib/toast";
-
-function vcfContent(settings: SiteSettings): string {
-  return `BEGIN:VCARD\nVERSION:3.0\nFN:${OWNER.name} - JNN\nORG:JNN\nTITLE:${OWNER.role}\nTEL;TYPE=CELL:${settings.phone}\nEMAIL:${settings.email}\nADR:;;${settings.address};;;;\nURL:${OWNER.website}\nEND:VCARD`;
-}
 
 export function BizCardSection() {
   const settings = useSiteSettings();
@@ -14,25 +11,19 @@ export function BizCardSection() {
   const [email, setEmail] = useState("");
 
   function sendWhatsApp() {
-    const num = waNumber.replace(/[^0-9+]/g, "");
-    if (!num) return showToast("Entrez le numéro WhatsApp du client.", true);
-    const text = encodeURIComponent(
-      `Bonjour, voici mes coordonnées :\n${OWNER.name} — ${OWNER.role}\nJNN, ${settings.address}\nTél : ${settings.phone}\nE-mail : ${settings.email}\n${OWNER.website}`
-    );
-    window.open(`https://wa.me/${num.replace("+", "")}?text=${text}`, "_blank");
+    const url = shareCardWhatsAppUrl(waNumber, settings);
+    if (!url) return showToast("Entrez le numéro WhatsApp du client.", true);
+    window.open(url, "_blank");
   }
 
   function sendMail() {
-    if (!email.trim()) return showToast("Entrez l'e-mail du client.", true);
-    const subject = encodeURIComponent("Coordonnées JNN — véhicules d'occasion");
-    const body = encodeURIComponent(
-      `Bonjour,\n\nVoici mes coordonnées :\n${OWNER.name} — ${OWNER.role}\nJNN, ${settings.address}\nTél : ${settings.phone}\nE-mail : ${settings.email}\n${OWNER.website}\n\nÀ bientôt !`
-    );
-    window.location.href = `mailto:${email.trim()}?subject=${subject}&body=${body}`;
+    const url = shareCardMailUrl(email, settings);
+    if (!url) return showToast("Entrez l'e-mail du client.", true);
+    window.location.href = url;
   }
 
   function downloadVcf() {
-    const blob = new Blob([vcfContent(settings)], { type: "text/vcard" });
+    const blob = new Blob([buildVCard(settings)], { type: "text/vcard" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

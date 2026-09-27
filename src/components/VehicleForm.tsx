@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { adminSaveVehicle, adminUploadPhoto, adminDeleteVehicle, adminMarkSold } from "~/server/functions";
 import { getAdminToken } from "~/lib/adminSession";
 import { showToast } from "~/lib/toast";
+import { moveImage as moveImageInList, reorderImages as reorderImageList } from "~/lib/imageOrder";
 import { VehiclePhoto } from "~/components/CarPlaceholder";
 import type { VehicleView } from "~/server/vehicles";
 
@@ -62,23 +63,12 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
     setImages((prev) => prev.filter((_, idx) => idx !== i));
   }
   function moveImage(i: number, dir: 1 | -1) {
-    setImages((prev) => {
-      const j = i + dir;
-      if (j < 0 || j >= prev.length) return prev;
-      const copy = prev.slice();
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-      return copy;
-    });
+    setImages((prev) => moveImageInList(prev, i, dir));
   }
 
   function reorderImages(from: number, to: number) {
     if (from === to) return;
-    setImages((prev) => {
-      const copy = prev.slice();
-      const [moved] = copy.splice(from, 1);
-      copy.splice(to, 0, moved);
-      return copy;
-    });
+    setImages((prev) => reorderImageList(prev, from, to));
   }
 
   function handleDragStart(i: number) {
