@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { listVehicles, listAllVehicles, getVehicle, createVehicle, updateVehicle, deleteVehicle, markVehicleSold } from "./vehicles";
+import { listVehicles, listAllVehicles, getVehicle, saveVehicle, deleteVehicle, markVehicleSold } from "./vehicles";
 import type { VehicleInput } from "./vehicles";
 import { listReviews, listFeaturedReviews } from "./reviews";
 import { runWithDb } from "./runtime";
@@ -114,18 +114,7 @@ export const adminSaveVehicle = createServerFn({ method: "POST" })
   .validator((data: { token: string; isNew: boolean; originalId?: string; vehicle: VehicleInput }) => data)
   .handler(async ({ data }) => {
     await assertAdmin(data.token);
-    const originalId = data.originalId ?? data.vehicle.id;
-    if (data.isNew || data.vehicle.id !== originalId) {
-      const existing = await runWithDb(db(), getVehicle(data.vehicle.id));
-      if (existing) {
-        throw new Error(`La référence "${data.vehicle.id}" est déjà utilisée par un autre véhicule.`);
-      }
-    }
-    if (data.isNew) {
-      await runWithDb(db(), createVehicle(data.vehicle));
-    } else {
-      await runWithDb(db(), updateVehicle(originalId, data.vehicle));
-    }
+    await runWithDb(db(), saveVehicle(data));
     return { ok: true };
   });
 

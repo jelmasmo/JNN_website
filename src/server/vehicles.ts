@@ -160,3 +160,28 @@ export function markVehicleSold(id: string) {
     yield* run("UPDATE vehicles SET sold_at = datetime('now') WHERE id = ?", [id]);
   });
 }
+
+export interface SaveVehicleRequest {
+  isNew: boolean;
+  /** Référence avant modification (absente = inchangée). */
+  originalId?: string;
+  vehicle: VehicleInput;
+}
+
+/**
+ * Enregistre le formulaire admin : création ou modification, en refusant
+ * toute référence déjà prise par un autre véhicule.
+ */
+export function saveVehicle({ isNew, originalId, vehicle }: SaveVehicleRequest) {
+  return Effect.gen(function* () {
+    originalId ??= vehicle.id;
+    if (isNew || vehicle.id !== originalId) {
+      const existing = yield* getVehicle(vehicle.id);
+      if (existing) {
+        throw new Error(`La référence "${vehicle.id}" est déjà utilisée par un autre véhicule.`);
+      }
+    }
+    if (isNew) yield* createVehicle(vehicle);
+    else yield* updateVehicle(originalId, vehicle);
+  });
+}
