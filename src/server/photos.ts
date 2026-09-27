@@ -14,7 +14,9 @@ export async function uploadPhotoToR2(
   file: File,
   keyPrefix: string
 ): Promise<string> {
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const dot = file.name.lastIndexOf(".");
+  const rawExt = dot > 0 ? file.name.slice(dot + 1) : "";
+  const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const key = `${keyPrefix}/${crypto.randomUUID()}.${ext}`;
   const buf = await file.arrayBuffer();
   await bucket.put(key, buf, {
