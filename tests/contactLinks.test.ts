@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildVCard, vehicleWhatsAppUrl, vehicleMailUrl, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
+import { buildVCard, appointmentWhatsAppUrl, vehicleWhatsAppUrl, vehicleMailUrl, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
 
 const settings = { phone: "+32 471 11 22 33", email: "contact@jnn.be", address: "Rue Neuve 1, 1000 Bruxelles" };
 
@@ -67,5 +67,15 @@ describe("partage de la carte de visite", () => {
 
   it("n'envoie pas d'e-mail si aucune adresse n'est saisie", () => {
     expect(shareCardMailUrl("", settings)).toBeNull();
+  });
+});
+
+describe("prise de rendez-vous depuis l'accueil", () => {
+  it("ouvre WhatsApp vers JNN avec une demande de rendez-vous", () => {
+    const url = appointmentWhatsAppUrl(settings.phone);
+    expect(url.startsWith("https://wa.me/32471112233?")).toBe(true);
+    expect(textParam(url, "text")).toBe(
+      "Bonjour, je souhaiterais prendre rendez-vous pour venir voir vos véhicules chez JNN."
+    );
   });
 });

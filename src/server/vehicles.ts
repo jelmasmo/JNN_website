@@ -149,6 +149,10 @@ export function updateVehicle(originalId: string, input: VehicleInput) {
 
 export function deleteVehicle(id: string) {
   return Effect.gen(function* () {
+    const found = yield* query<{ id: string }>("SELECT id FROM vehicles WHERE id = ?", [id]);
+    if (found.length === 0) {
+      throw new Error(`Véhicule "${id}" introuvable (déjà supprimé ?).`);
+    }
     yield* run("DELETE FROM vehicle_stats WHERE vehicle_id = ?", [id]);
     yield* run("DELETE FROM vehicles WHERE id = ?", [id]);
   });

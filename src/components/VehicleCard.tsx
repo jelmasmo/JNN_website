@@ -1,11 +1,12 @@
 import { useState, type UIEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { VehiclePhoto } from "./CarPlaceholder";
+import { DeleteVehicleButton } from "./DeleteVehicleButton";
 import { fmtKm, fmtPrice } from "~/lib/config";
 import { powerLabel } from "~/lib/power";
 import type { VehicleView } from "~/server/vehicles";
 
-export function VehicleCard({ vehicle, isAdmin, onDelete }: { vehicle: VehicleView; isAdmin: boolean; onDelete?: (id: string) => void }) {
+export function VehicleCard({ vehicle, isAdmin, onDeleted }: { vehicle: VehicleView; isAdmin: boolean; onDeleted?: (id: string) => void }) {
   const imgs = vehicle.images && vehicle.images.length ? vehicle.images : ["placeholder"];
   const [dot, setDot] = useState(0);
 
@@ -55,19 +56,15 @@ export function VehicleCard({ vehicle, isAdmin, onDelete }: { vehicle: VehicleVi
         </div>
       </Link>
       {isAdmin && (
-        <div className="admin-tools">
-          <Link to="/admin/vehicules/$vehicleId/edit" params={{ vehicleId: vehicle.id }} title="Modifier">
-            ✎
+        <div className="card-admin-bar">
+          <Link to="/admin/vehicules/$vehicleId/edit" params={{ vehicleId: vehicle.id }} className="card-admin-btn">
+            ✎ Modifier
           </Link>
-          <button
-            title="Supprimer"
-            onClick={(e) => {
-              e.preventDefault();
-              onDelete?.(vehicle.id);
-            }}
-          >
-            🗑
-          </button>
+          <DeleteVehicleButton
+            vehicle={vehicle}
+            className="card-admin-btn danger"
+            onDeleted={() => onDeleted?.(vehicle.id)}
+          />
         </div>
       )}
     </div>

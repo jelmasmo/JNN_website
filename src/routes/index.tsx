@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   getVehiclesList,
   getFeaturedReviews,
-  adminDeleteVehicle,
   adminListSoldPhotos,
 } from "~/server/functions";
 import { FILTERS } from "~/lib/config";
@@ -11,9 +10,10 @@ import { VehicleCard } from "~/components/VehicleCard";
 import { Header } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 import { BizCardSection } from "~/components/BizCardSection";
-import { useHasAdminToken, getAdminToken } from "~/lib/adminSession";
+import { HeroReviewCard } from "~/components/HeroReviewCard";
+import { appointmentWhatsAppUrl } from "~/lib/contactLinks";
+import { useHasAdminToken } from "~/lib/adminSession";
 import { useSiteSettings } from "~/lib/siteSettings";
-import { showToast } from "~/lib/toast";
 import type { VehicleView } from "~/server/vehicles";
 
 export const Route = createFileRoute("/")({
@@ -38,18 +38,8 @@ function HomePage() {
   const list = vehicles.filter((v) => activeFilter === "tous" || v.type === activeFilter);
   const photos = soldPhotos.map((p) => p.url);
 
-  async function handleDelete(id: string) {
-    const v = vehicles.find((x) => x.id === id);
-    if (!confirm(`Supprimer ${v?.title ?? id} du stock ? Cette action est définitive.`)) return;
-    const token = getAdminToken();
-    if (!token) return;
-    try {
-      await adminDeleteVehicle({ data: { token, id } });
-      setVehicles((vs) => vs.filter((x) => x.id !== id));
-      showToast("Véhicule supprimé.");
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Erreur lors de la suppression.", true);
-    }
+  function handleDeleted(id: string) {
+    setVehicles((vs) => vs.filter((x) => x.id !== id));
   }
 
   return (
@@ -70,64 +60,35 @@ function HomePage() {
             </>
           )}
           <div className="wrap hero-grid">
-            <div>
+            <div className="hero-copy">
               <span className="eyebrow">Vendeur professionnel — {settings.address}</span>
               <h1>
                 Des occasions choisies.
                 <br />
                 Pas <em>improvisées</em>.
               </h1>
-              <p>
-                Chaque véhicule qui entre chez JNN est vérifié, préparé et vendu avec la même
-                exigence — celle qui nous vaut 73 avis clients et 100% de recommandations sur
-                AutoScout24.
-              </p>
+              <p>Chaque véhicule qui entre chez JNN est vérifié, préparé et vendu avec la même exigence.</p>
               <div className="hero-ctas">
                 <a href="#stock" className="btn-primary">
                   Voir le stock
+                  <span className="cta-count">{vehicles.length}</span>
                 </a>
-                <a href="#avis" className="btn-ghost">
-                  Lire les avis clients
+                <a href={appointmentWhatsAppUrl(settings.phone)} target="_blank" rel="noreferrer" className="btn-ghost">
+                  Prendre rendez-vous
                 </a>
               </div>
-            </div>
-            <div className="gauge-panel">
-              <div className="gauge-strip">
-                <div className="gauge-row">
-                  <div className="gauge">
-                    <svg viewBox="0 0 120 70">
-                      <path d="M10,65 A50,50 0 0 1 110,65" fill="none" stroke="var(--line)" strokeWidth="10" strokeLinecap="round" />
-                      <path
-                        d="M10,65 A50,50 0 0 1 110,65"
-                        fill="none"
-                        stroke="var(--brass)"
-                        strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray="157"
-                        strokeDashoffset="7.85"
-                      />
+              <ul className="hero-perks">
+                {["Faible kilométrage", "Excellent état", "Souvent 1er propriétaire"].map((perk) => (
+                  <li key={perk}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M20 6L9 17l-5-5" />
                     </svg>
-                    <div className="gauge-value">4.8</div>
-                  </div>
-                  <div>
-                    <div className="gauge-label">Note moyenne</div>
-                    <div style={{ color: "var(--cream-dim)", fontSize: 13, marginTop: 4 }}>
-                      sur base des évaluations AutoScout24
-                    </div>
-                  </div>
-                </div>
-                <div className="divider-v" />
-                <div className="stat-list">
-                  <div className="n">73</div>
-                  <div className="l">Avis clients</div>
-                </div>
-                <div className="divider-v" />
-                <div className="stat-list">
-                  <div className="n">100%</div>
-                  <div className="l">Recommandations</div>
-                </div>
-              </div>
+                    {perk}
+                  </li>
+                ))}
+              </ul>
             </div>
+            <HeroReviewCard reviews={reviews} />
           </div>
         </section>
 
@@ -169,7 +130,7 @@ function HomePage() {
             </div>
             <div className="car-grid">
               {list.map((v) => (
-                <VehicleCard key={v.id} vehicle={v} isAdmin={isAdmin} onDelete={handleDelete} />
+                <VehicleCard key={v.id} vehicle={v} isAdmin={isAdmin} onDeleted={handleDeleted} />
               ))}
             </div>
           </div>

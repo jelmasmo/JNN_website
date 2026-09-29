@@ -6,6 +6,7 @@ import { fmtPrice } from "~/lib/config";
 import { showToast } from "~/lib/toast";
 import { Header } from "~/components/Header";
 import { Footer } from "~/components/Footer";
+import { DeleteVehicleButton } from "~/components/DeleteVehicleButton";
 import type { VehicleView } from "~/server/vehicles";
 import type { VehicleStat } from "~/server/stats";
 
@@ -136,6 +137,10 @@ function DashboardPage() {
                         <Link to="/admin/vehicules/$vehicleId/edit" params={{ vehicleId: v.id }} className="btn-small">
                           Modifier
                         </Link>
+                        <DeleteVehicleButton
+                          vehicle={v}
+                          onDeleted={() => setVehicles((vs) => (vs ? vs.filter((x) => x.id !== v.id) : vs))}
+                        />
                       </div>
                     </td>
                   </tr>

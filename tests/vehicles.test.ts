@@ -112,6 +112,12 @@ describe("véhicules", () => {
     expect(await runWithDb(db, getVehicle("A1-21"))).toBeNull();
     expect(await runWithDb(db, listStats())).toEqual([]);
   });
+
+  it("supprimer un véhicule inexistant échoue avec un message lisible", async () => {
+    await expect(runWithDb(db, deleteVehicle("FANTOME"))).rejects.toThrow(
+      'Véhicule "FANTOME" introuvable (déjà supprimé ?).'
+    );
+  });
 });
 
 describe("enregistrement depuis le formulaire admin", () => {

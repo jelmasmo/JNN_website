@@ -1,12 +1,13 @@
 import { useState, type DragEvent, type FormEvent } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { adminSaveVehicle, adminUploadPhoto, adminDeleteVehicle, adminMarkSold } from "~/server/functions";
+import { adminSaveVehicle, adminUploadPhoto, adminMarkSold } from "~/server/functions";
 import { getAdminToken } from "~/lib/adminSession";
 import { showToast } from "~/lib/toast";
 import { toWebCompatible } from "~/lib/imageConvert";
 import { moveImage as moveImageInList, reorderImages as reorderImageList } from "~/lib/imageOrder";
 import { VehiclePhoto } from "~/components/CarPlaceholder";
 import type { VehicleView } from "~/server/vehicles";
+import { DeleteVehicleButton } from "./DeleteVehicleButton";
 
 const FUELS = ["Essence", "Diesel", "Hybride", "Électrique", "GPL"];
 const TYPES = [
@@ -125,20 +126,6 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
       showToast(err instanceof Error ? err.message : "Erreur lors de l'enregistrement.", true);
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!existing) return;
-    if (!confirm(`Supprimer ${existing.title} du stock ? Cette action est définitive.`)) return;
-    const token = getAdminToken();
-    if (!token) return;
-    try {
-      await adminDeleteVehicle({ data: { token, id: existing.id } });
-      showToast("Véhicule supprimé.");
-      router.navigate({ to: "/admin/dashboard" });
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Erreur lors de la suppression.", true);
     }
   }
 
@@ -288,9 +275,7 @@ export function VehicleForm({ existing }: { existing?: VehicleView }) {
             <button type="button" className="btn-small" onClick={handleMarkSold}>
               ✅ Marquer comme vendu
             </button>
-            <button type="button" className="btn-danger" onClick={handleDelete}>
-              🗑 Supprimer
-            </button>
+            <DeleteVehicleButton vehicle={existing} onDeleted={() => router.navigate({ to: "/admin/dashboard" })} />
           </>
         )}
       </div>

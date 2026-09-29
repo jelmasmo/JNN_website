@@ -14,6 +14,12 @@ export interface ContactVehicle {
   price: number;
 }
 
+/** Lien WhatsApp vers JNN pour demander un rendez-vous (bouton de l'accueil). */
+export function appointmentWhatsAppUrl(phone: string): string {
+  const msg = "Bonjour, je souhaiterais prendre rendez-vous pour venir voir vos véhicules chez JNN.";
+  return `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`;
+}
+
 /** Lien WhatsApp vers JNN au sujet d'un véhicule (`extra` = message libre du visiteur). */
 export function vehicleWhatsAppUrl(vehicle: ContactVehicle, phone: string, pageUrl: string, extra: string): string {
   let msg = `Bonjour, je suis intéressé(e) par le véhicule ${vehicle.title} (${fmtPrice(vehicle.price)}) : ${pageUrl}`;

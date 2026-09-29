@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { getVehicleById, recordVehicleEvent } from "~/server/functions";
 import { powerLabel } from "~/lib/power";
 import { fmtKm, fmtPrice } from "~/lib/config";
 import { VehiclePhoto } from "~/components/CarPlaceholder";
 import { Header } from "~/components/Header";
 import { Footer } from "~/components/Footer";
+import { NotFound } from "~/components/NotFound";
+import { DeleteVehicleButton } from "~/components/DeleteVehicleButton";
 import { useHasAdminToken } from "~/lib/adminSession";
 import { useSiteSettings } from "~/lib/siteSettings";
 import { vehicleWhatsAppUrl, vehicleMailUrl } from "~/lib/contactLinks";
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/vehicules/$vehicleId")({
     return { vehicle };
   },
   component: VehiclePage,
+  notFoundComponent: () => <NotFound vehicle />,
 });
 
 function VehiclePage() {
@@ -24,6 +27,7 @@ function VehiclePage() {
   const [index, setIndex] = useState(0);
   const [extraMsg, setExtraMsg] = useState("");
   const isAdmin = useHasAdminToken();
+  const navigate = useNavigate();
   const settings = useSiteSettings();
   const imgs = vehicle.images && vehicle.images.length ? vehicle.images : ["placeholder"];
   const trackRef = useRef<HTMLDivElement>(null);
@@ -164,9 +168,16 @@ function VehiclePage() {
                   ✉ E-mail
                 </button>
                 {isAdmin && (
-                  <Link to="/admin/vehicules/$vehicleId/edit" params={{ vehicleId: vehicle.id }} className="btn-small">
-                    ✎ Modifier ce véhicule
-                  </Link>
+                  <>
+                    <Link to="/admin/vehicules/$vehicleId/edit" params={{ vehicleId: vehicle.id }} className="btn-small">
+                      ✎ Modifier ce véhicule
+                    </Link>
+                    <DeleteVehicleButton
+                      vehicle={vehicle}
+                      label="Supprimer l'annonce"
+                      onDeleted={() => navigate({ to: "/" })}
+                    />
+                  </>
                 )}
               </div>
             </div>
