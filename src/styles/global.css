@@ -309,6 +309,11 @@ footer.site-footer a:hover,footer.site-footer button:hover{color:var(--brass);}
 .photo-thumb-edit .reorder-row button:disabled{opacity:0.2;}
 .photo-thumb-edit .reorder-row button:not(:disabled):hover{color:var(--brass);}
 
+/* iPhone zoome automatiquement sur un champ dont le texte fait moins de
+   16px, et reste zoomé ensuite : on passe les champs à 16px sur tactile. */
+@media (pointer:coarse){
+  input,select,textarea{font-size:16px;}
+}
 @media (max-width:1080px){
   .hero-grid{grid-template-columns:minmax(0,1fr) 380px;gap:36px;}
 }

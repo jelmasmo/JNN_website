@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildVCard, appointmentWhatsAppUrl, vehicleWhatsAppUrl, vehicleMailUrl, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
+import { buildVCard, cardShareText, appointmentWhatsAppUrl, vehicleWhatsAppUrl, vehicleMailUrl, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
 
 const settings = { phone: "+32 471 11 22 33", email: "contact@jnn.be", address: "Rue Neuve 1, 1000 Bruxelles" };
 
@@ -89,6 +89,7 @@ describe("partage de la carte de visite", () => {
     const body = new URLSearchParams(url!.split("?")[1]).get("body");
     expect(body).toContain("E-mail : contact@jnn.be");
     expect(body).toContain("https://jnn-drogenbos.be");
+    expect(body).toContain("https://jnn-drogenbos.be/carte-jnn.jpg");
   });
 
   it("n'envoie pas d'e-mail si aucune adresse n'est saisie", () => {
@@ -110,5 +111,14 @@ describe("numéro WhatsApp de JNN saisi au format local", () => {
   it("fonctionne aussi si le numéro de JNN est enregistré comme 0471 …", () => {
     const url = appointmentWhatsAppUrl("0471 11 22 33");
     expect(url.startsWith("https://wa.me/32471112233?")).toBe(true);
+  });
+});
+
+describe("partage de la carte en image (menu de partage du téléphone)", () => {
+  it("accompagne l'image des coordonnées et du lien du site", () => {
+    const text = cardShareText(settings);
+    expect(text).toContain("+32 471 11 22 33");
+    expect(text).toContain("contact@jnn.be");
+    expect(text).toContain("https://jnn-drogenbos.be");
   });
 });

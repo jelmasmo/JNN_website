@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { OWNER } from "~/lib/config";
 import { useSiteSettings } from "~/lib/siteSettings";
-import { buildVCard, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
+import { buildVCard, cardShareText, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
 import { showToast } from "~/lib/toast";
 
 export function BizCardSection() {
@@ -9,6 +9,37 @@ export function BizCardSection() {
   const [open, setOpen] = useState(false);
   const [waNumber, setWaNumber] = useState("");
   const [email, setEmail] = useState("");
+  const cardFile = useRef<File | null>(null);
+
+  // L'image est préparée dès l'ouverture du panneau : sur iPhone, le menu de
+  // partage doit s'ouvrir juste après le toucher, sans attendre le réseau.
+  useEffect(() => {
+    if (!open || cardFile.current) return;
+    fetch("/carte-jnn.jpg")
+      .then((r) => r.blob())
+      .then((blob) => {
+        cardFile.current = new File([blob], "Carte-JNN-Drogenbos.jpg", { type: "image/jpeg" });
+      })
+      .catch(() => {});
+  }, [open]);
+
+  async function shareImage() {
+    const file = cardFile.current;
+    const data = { files: file ? [file] : [], title: "Carte de visite JNN", text: cardShareText(settings) };
+    if (file && typeof navigator.canShare === "function" && navigator.canShare(data)) {
+      try {
+        await navigator.share(data);
+      } catch (err) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          showToast("Le partage n'a pas pu s'ouvrir.", true);
+        }
+      }
+      return;
+    }
+    // Ordinateur ou navigateur sans partage de fichiers : on ouvre l'image.
+    window.open("/carte-jnn.jpg", "_blank");
+    showToast("Image ouverte : enregistrez-la pour l'envoyer en pièce jointe.");
+  }
 
   function sendWhatsApp() {
     const url = shareCardWhatsAppUrl(waNumber, settings);
@@ -103,6 +134,12 @@ export function BizCardSection() {
               <input type="email" placeholder="client@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               <button className="btn-mail" onClick={sendMail}>
                 Envoyer par e-mail
+              </button>
+            </div>
+            <label>Carte de visite en image (Mail, WhatsApp, SMS…)</label>
+            <div className="share-row">
+              <button className="btn-primary" onClick={shareImage}>
+                📤 Envoyer la carte en image
               </button>
             </div>
             <div className="share-row">

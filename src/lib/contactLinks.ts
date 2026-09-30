@@ -51,6 +51,24 @@ function cardText(settings: SiteSettings): string {
   return `${OWNER.name} — ${OWNER.role}\nJNN, ${settings.address}\nTél : ${settings.phone}\nE-mail : ${settings.email}\n${OWNER.website}`;
 }
 
+/** Image de la carte de visite, servie depuis public/carte-jnn.jpg. */
+export const CARD_IMAGE_URL = `${OWNER.website}/carte-jnn.jpg`;
+
+/** Texte qui accompagne l'image de la carte dans le menu de partage du téléphone. */
+export function cardShareText(settings: SiteSettings): string {
+  return [
+    "Bonjour, voici ma carte de visite :",
+    "",
+    "JNN Drogenbos — Véhicules d'occasion",
+    `${OWNER.name} — ${OWNER.role}`,
+    `📍 ${settings.address}`,
+    `📞 ${settings.phone}`,
+    `✉️ ${settings.email}`,
+    "",
+    `🚗 Notre stock : ${OWNER.website}`,
+  ].join("\n");
+}
+
 /**
  * Version WhatsApp de la carte : gras (*…*) et icônes, et le lien du site
  * seul sur la dernière ligne — WhatsApp en affiche l'aperçu, c'est-à-dire
@@ -84,6 +102,6 @@ export function shareCardMailUrl(clientEmail: string, settings: SiteSettings): s
   const to = clientEmail.trim();
   if (!to) return null;
   const subject = "Coordonnées JNN — véhicules d'occasion";
-  const body = `Bonjour,\n\nVoici mes coordonnées :\n${cardText(settings)}\n\nÀ bientôt !`;
+  const body = `Bonjour,\n\nVoici mes coordonnées :\n${cardText(settings)}\n\nMa carte de visite : ${CARD_IMAGE_URL}\n\nÀ bientôt !`;
   return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
