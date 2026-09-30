@@ -10,6 +10,10 @@ describe("carte de visite (.vcf)", () => {
     expect(lines).toContain("EMAIL:contact@jnn.be");
     expect(lines).toContain("ADR:;;Rue Neuve 1, 1000 Bruxelles;;;;");
   });
+
+  it("pointe vers le vrai site de JNN", () => {
+    expect(buildVCard(settings).split("\n")).toContain("URL:https://jnn-drogenbos.be");
+  });
 });
 
 const golf = { id: "GOLF7", title: "VW Golf 7", price: 12500 };
@@ -52,7 +56,7 @@ describe("partage de la carte de visite", () => {
   it("envoie les coordonnées par WhatsApp au numéro du client, quel que soit son format", () => {
     const url = shareCardWhatsAppUrl("+32 (470) 12.34.56", settings);
     expect(url?.startsWith("https://wa.me/32470123456?")).toBe(true);
-    expect(textParam(url!, "text")).toContain("Tél : +32 471 11 22 33");
+    expect(textParam(url!, "text")).toContain("📞 +32 471 11 22 33");
   });
 
   it("accepte un numéro belge local commençant par 0 (ex : 0470…)", () => {
@@ -65,6 +69,16 @@ describe("partage de la carte de visite", () => {
     expect(url?.startsWith("https://wa.me/32470123456?")).toBe(true);
   });
 
+  it("contient le lien du site JNN, pour afficher l'aperçu de la carte", () => {
+    const url = shareCardWhatsAppUrl("0470 12 34 56", settings);
+    expect(textParam(url!, "text")).toContain("https://jnn-drogenbos.be");
+  });
+
+  it("met en forme le message (nom de l'entreprise en gras)", () => {
+    const url = shareCardWhatsAppUrl("0470 12 34 56", settings);
+    expect(textParam(url!, "text")).toContain("*JNN Drogenbos*");
+  });
+
   it("n'envoie rien si aucun numéro n'est saisi", () => {
     expect(shareCardWhatsAppUrl("  ", settings)).toBeNull();
   });
@@ -72,7 +86,9 @@ describe("partage de la carte de visite", () => {
   it("envoie les coordonnées par e-mail à l'adresse du client", () => {
     const url = shareCardMailUrl(" client@exemple.com ", settings);
     expect(url?.startsWith("mailto:client@exemple.com?")).toBe(true);
-    expect(new URLSearchParams(url!.split("?")[1]).get("body")).toContain("E-mail : contact@jnn.be");
+    const body = new URLSearchParams(url!.split("?")[1]).get("body");
+    expect(body).toContain("E-mail : contact@jnn.be");
+    expect(body).toContain("https://jnn-drogenbos.be");
   });
 
   it("n'envoie pas d'e-mail si aucune adresse n'est saisie", () => {

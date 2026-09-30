@@ -60,7 +60,7 @@ export function BizCardSection() {
                 <b>MAIL</b> {settings.email}
               </div>
               <div className="bc-line">
-                <b>WEB</b> {OWNER.website}
+                <b>WEB</b> {OWNER.website.replace(/^https?:\/\//, "")}
               </div>
             </div>
             <div className="bc-car-icon">

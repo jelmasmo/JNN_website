@@ -23,6 +23,22 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "JNN — Véhicules d'occasion à Drogenbos" },
+      {
+        name: "description",
+        content: "Vendeur professionnel de véhicules d'occasion à Drogenbos — Grote Baan 361/1. Stock vérifié, 73 avis clients, 100 % de recommandations.",
+      },
+      // Aperçu des liens partagés (WhatsApp, Facebook…) : l'image de la
+      // carte de visite JNN (public/carte-jnn.jpg, 1200×630).
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "JNN Drogenbos" },
+      { property: "og:title", content: "JNN Drogenbos — Véhicules d'occasion" },
+      { property: "og:description", content: "Des occasions choisies, pas improvisées. Grote Baan 361/1, 1620 Drogenbos." },
+      { property: "og:url", content: "https://jnn-drogenbos.be" },
+      { property: "og:image", content: "https://jnn-drogenbos.be/carte-jnn.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "Carte de visite JNN Drogenbos" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

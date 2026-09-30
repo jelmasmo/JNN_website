@@ -6,7 +6,7 @@ export const OWNER = {
   phone: "+32 470 00 00 00",
   email: "JNN1620@outlook.com",
   address: "Grote Baan 361/1, 1620 Drogenbos",
-  website: "www.jnn.be",
+  website: "https://jnn-drogenbos.be",
 };
 
 export const FILTERS = [

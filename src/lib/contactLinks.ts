@@ -51,11 +51,31 @@ function cardText(settings: SiteSettings): string {
   return `${OWNER.name} — ${OWNER.role}\nJNN, ${settings.address}\nTél : ${settings.phone}\nE-mail : ${settings.email}\n${OWNER.website}`;
 }
 
+/**
+ * Version WhatsApp de la carte : gras (*…*) et icônes, et le lien du site
+ * seul sur la dernière ligne — WhatsApp en affiche l'aperçu, c'est-à-dire
+ * l'image de la carte de visite (balises og:image, voir __root.tsx).
+ */
+function cardWhatsAppText(settings: SiteSettings): string {
+  return [
+    "Bonjour 👋 Voici mes coordonnées :",
+    "",
+    "*JNN Drogenbos* — Véhicules d'occasion",
+    `👤 ${OWNER.name} — ${OWNER.role}`,
+    `📍 ${settings.address}`,
+    `📞 ${settings.phone}`,
+    `✉️ ${settings.email}`,
+    "",
+    "🚗 Découvrez notre stock :",
+    OWNER.website,
+  ].join("\n");
+}
+
 /** Lien WhatsApp pour envoyer la carte de visite à un client ; `null` si aucun numéro. */
 export function shareCardWhatsAppUrl(clientNumber: string, settings: SiteSettings): string | null {
   const num = whatsAppNumber(clientNumber);
   if (!num) return null;
-  const text = `Bonjour, voici mes coordonnées :\n${cardText(settings)}`;
+  const text = cardWhatsAppText(settings);
   return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
 }
 
