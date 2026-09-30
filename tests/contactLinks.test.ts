@@ -55,6 +55,16 @@ describe("partage de la carte de visite", () => {
     expect(textParam(url!, "text")).toContain("Tél : +32 471 11 22 33");
   });
 
+  it("accepte un numéro belge local commençant par 0 (ex : 0470…)", () => {
+    const url = shareCardWhatsAppUrl("0470 12 34 56", settings);
+    expect(url?.startsWith("https://wa.me/32470123456?")).toBe(true);
+  });
+
+  it("accepte un numéro international écrit avec 00 (ex : 0032…)", () => {
+    const url = shareCardWhatsAppUrl("0032 470 12 34 56", settings);
+    expect(url?.startsWith("https://wa.me/32470123456?")).toBe(true);
+  });
+
   it("n'envoie rien si aucun numéro n'est saisi", () => {
     expect(shareCardWhatsAppUrl("  ", settings)).toBeNull();
   });
@@ -77,5 +87,12 @@ describe("prise de rendez-vous depuis l'accueil", () => {
     expect(textParam(url, "text")).toBe(
       "Bonjour, je souhaiterais prendre rendez-vous pour venir voir vos véhicules chez JNN."
     );
+  });
+});
+
+describe("numéro WhatsApp de JNN saisi au format local", () => {
+  it("fonctionne aussi si le numéro de JNN est enregistré comme 0471 …", () => {
+    const url = appointmentWhatsAppUrl("0471 11 22 33");
+    expect(url.startsWith("https://wa.me/32471112233?")).toBe(true);
   });
 });

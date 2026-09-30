@@ -14,17 +14,29 @@ export interface ContactVehicle {
   price: number;
 }
 
+/**
+ * Numéro au format attendu par wa.me : indicatif pays + numéro, chiffres
+ * seulement. Accepte « +32 470… », « 0032 470… » et le format belge local
+ * « 0470… » (le 0 initial est remplacé par l'indicatif 32).
+ */
+export function whatsAppNumber(raw: string): string {
+  const digits = raw.replace(/[^0-9]/g, "");
+  if (digits.startsWith("00")) return digits.slice(2);
+  if (digits.startsWith("0")) return "32" + digits.slice(1);
+  return digits;
+}
+
 /** Lien WhatsApp vers JNN pour demander un rendez-vous (bouton de l'accueil). */
 export function appointmentWhatsAppUrl(phone: string): string {
   const msg = "Bonjour, je souhaiterais prendre rendez-vous pour venir voir vos véhicules chez JNN.";
-  return `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${whatsAppNumber(phone)}?text=${encodeURIComponent(msg)}`;
 }
 
 /** Lien WhatsApp vers JNN au sujet d'un véhicule (`extra` = message libre du visiteur). */
 export function vehicleWhatsAppUrl(vehicle: ContactVehicle, phone: string, pageUrl: string, extra: string): string {
   let msg = `Bonjour, je suis intéressé(e) par le véhicule ${vehicle.title} (${fmtPrice(vehicle.price)}) : ${pageUrl}`;
   if (extra.trim()) msg += `\n\n${extra.trim()}`;
-  return `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${whatsAppNumber(phone)}?text=${encodeURIComponent(msg)}`;
 }
 
 /** Lien e-mail vers JNN au sujet d'un véhicule (`extra` = message libre du visiteur). */
@@ -41,7 +53,7 @@ function cardText(settings: SiteSettings): string {
 
 /** Lien WhatsApp pour envoyer la carte de visite à un client ; `null` si aucun numéro. */
 export function shareCardWhatsAppUrl(clientNumber: string, settings: SiteSettings): string | null {
-  const num = clientNumber.replace(/[^0-9]/g, "");
+  const num = whatsAppNumber(clientNumber);
   if (!num) return null;
   const text = `Bonjour, voici mes coordonnées :\n${cardText(settings)}`;
   return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;

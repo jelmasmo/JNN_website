@@ -3,6 +3,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useHasAdminToken } from "~/lib/adminSession";
 import { useSiteSettings } from "~/lib/siteSettings";
 import { activeNavKey } from "~/lib/nav";
+import { whatsAppNumber } from "~/lib/contactLinks";
 
 export function Header() {
   const isAdmin = useHasAdminToken();
@@ -10,7 +11,7 @@ export function Header() {
   const [contactOpen, setContactOpen] = useState(false);
   const active = activeNavKey(useLocation().pathname);
   const cls = (key: string) => (active === key ? "active" : undefined);
-  const waHref = `https://wa.me/${settings.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+  const waHref = `https://wa.me/${whatsAppNumber(settings.phone)}?text=${encodeURIComponent(
     "Bonjour, je vous contacte au sujet de vos véhicules disponibles chez JNN."
   )}`;
   return (

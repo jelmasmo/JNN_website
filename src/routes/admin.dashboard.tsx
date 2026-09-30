@@ -117,32 +117,44 @@ function DashboardPage() {
               <thead>
                 <tr>
                   <th>Véhicule</th>
-                  <th>Réf.</th>
+                  <th className="dash-ref">Réf.</th>
                   <th>Prix</th>
                   <th>Vues</th>
                   <th>Messages</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {vehicles.map((v) => (
                   <tr key={v.id}>
-                    <td className="strong">{v.title}</td>
-                    <td>{v.id}</td>
-                    <td>{fmtPrice(v.price)}</td>
-                    <td>{statFor(v.id)?.views ?? 0}</td>
-                    <td>{statFor(v.id)?.contacts ?? 0}</td>
-                    <td>
-                      <div className="dash-actions">
-                        <Link to="/admin/vehicules/$vehicleId/edit" params={{ vehicleId: v.id }} className="btn-small">
-                          Modifier
-                        </Link>
-                        <DeleteVehicleButton
-                          vehicle={v}
-                          onDeleted={() => setVehicles((vs) => (vs ? vs.filter((x) => x.id !== v.id) : vs))}
-                        />
+                    <td className="strong">
+                      <div className="dash-vehicle">
+                        <span>{v.title}</span>
+                        <div className="dash-actions">
+                          <Link
+                            to="/admin/vehicules/$vehicleId/edit"
+                            params={{ vehicleId: v.id }}
+                            className="icon-action"
+                            aria-label={`Modifier ${v.title}`}
+                            title="Modifier"
+                          >
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                            </svg>
+                          </Link>
+                          <DeleteVehicleButton
+                            vehicle={v}
+                            iconOnly
+                            className="icon-action danger"
+                            onDeleted={() => setVehicles((vs) => (vs ? vs.filter((x) => x.id !== v.id) : vs))}
+                          />
+                        </div>
                       </div>
                     </td>
+                    <td className="dash-ref">{v.id}</td>
+                    <td className="dash-num">{fmtPrice(v.price)}</td>
+                    <td className="dash-num">{statFor(v.id)?.views ?? 0}</td>
+                    <td className="dash-num">{statFor(v.id)?.contacts ?? 0}</td>
                   </tr>
                 ))}
               </tbody>

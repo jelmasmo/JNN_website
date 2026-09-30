@@ -85,11 +85,12 @@ export function BizCardSection() {
             📇 Partager cette carte
           </button>
           <div className={`share-panel${open ? " open" : ""}`}>
-            <label>Numéro WhatsApp du client (ex: 0032470000000)</label>
+            <label>Numéro WhatsApp du client (ex : 0470 12 34 56 ou +32 470 12 34 56)</label>
             <div className="share-row">
               <input
-                type="text"
-                placeholder="+32 4XX XX XX XX"
+                type="tel"
+                inputMode="tel"
+                placeholder="0470 12 34 56"
                 value={waNumber}
                 onChange={(e) => setWaNumber(e.target.value)}
               />
