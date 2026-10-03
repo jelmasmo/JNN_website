@@ -44,6 +44,14 @@ nav a.active{background:var(--cream);color:var(--text-dark);}
 .icon-btn{width:46px;height:46px;flex:none;border-radius:50%;background:#2fae5e;display:flex;align-items:center;justify-content:center;}
 .icon-btn:hover{background:#26964f;}
 .icon-btn svg{width:22px;height:22px;}
+/* Sélecteur de langue FR · NL · EN (en-tête) */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:3px;background:rgba(242,237,226,0.06);border:1px solid var(--line);border-radius:999px;font-family:'IBM Plex Mono',monospace;}
+.lang-switch button{height:32px;min-width:38px;padding:0 9px;border-radius:999px;font-size:12.5px;font-weight:600;letter-spacing:0.06em;color:var(--cream-dim);transition:background .15s,color .15s;}
+.lang-switch button:hover{color:var(--cream);background:rgba(242,237,226,0.08);}
+.lang-switch button.active{background:var(--cream);color:var(--text-dark);cursor:default;}
+header.header-admin .lang-switch{background:rgba(24,22,17,0.08);border-color:rgba(24,22,17,0.2);}
+header.header-admin .lang-switch button{color:var(--text-dark);}
+header.header-admin .lang-switch button.active{background:var(--text-dark);color:var(--cream);}
 .admin-pill{background:var(--green);color:#0d130e;font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.04em;}
 
 .hero{padding:72px 0 72px;background:radial-gradient(circle at 85% 20%, rgba(195,154,61,0.10), transparent 55%),var(--bg);border-bottom:1px solid var(--line);position:relative;overflow:hidden;}
@@ -280,6 +288,13 @@ footer.site-footer a:hover,footer.site-footer button:hover{color:var(--brass);}
 .dash-table td{padding:10px 8px;border-bottom:1px solid var(--line);color:var(--cream-dim);vertical-align:top;}
 .dash-table td.dash-num{padding-top:12px;}
 .dash-table td.strong{color:var(--cream);}
+/* Rapport de provenance : mêmes largeurs de colonnes dans tous les tableaux
+   (libellé, puis deux colonnes de chiffres alignées à droite). */
+.dash-report{table-layout:fixed;margin-top:22px;}
+.dash-report th:nth-child(2),.dash-report td:nth-child(2),.dash-report th:nth-child(3),.dash-report td:nth-child(3){width:110px;text-align:right;}
+.dash-report td{vertical-align:middle;}
+.dash-report td.dash-num{padding-top:10px;font-family:'IBM Plex Mono',monospace;color:var(--cream);}
+.dash-report td.strong{overflow-wrap:anywhere;}
 .dash-actions{display:flex;gap:6px;flex-wrap:wrap;}
 .dash-vehicle{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
 .dash-num{white-space:nowrap;}
@@ -317,6 +332,29 @@ footer.site-footer a:hover,footer.site-footer button:hover{color:var(--brass);}
 @media (max-width:1080px){
   .hero-grid{grid-template-columns:minmax(0,1fr) 380px;gap:36px;}
 }
+/* En-tête : place pour le sélecteur de langue. Sur tablette / petit
+   portable, le bouton « Nous contacter » devient une icône et les onglets se
+   resserrent ; sur téléphone, le sélecteur se compacte pour tenir à côté du
+   logo (l'en-tête reste sur deux lignes, comme avant). */
+@media (max-width:1240px) and (min-width:881px){
+  nav a,nav button{padding:0 14px;}
+  .call-btn{width:46px;padding:0;justify-content:center;}
+  .call-btn .call-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+}
+/* Mode admin : le badge « Admin » prend de la place dans l'en-tête. Pour
+   qu'il tienne sur une seule ligne dans les trois langues (les libellés
+   français et néerlandais sont plus longs que l'anglais), le bouton de
+   contact n'y montre que son icône — inutile pour JNN lui-même — et, sur
+   les écrans moyens, le badge s'efface (l'en-tête doré suffit à signaler
+   le mode admin). */
+header.header-admin .call-btn{width:46px;padding:0;justify-content:center;}
+header.header-admin .call-btn .call-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+@media (max-width:1240px) and (min-width:881px){
+  header.header-admin .admin-pill{display:none;}
+}
+@media (max-width:980px) and (min-width:881px){
+  nav a,nav button{padding:0 10px;font-size:14px;}
+}
 @media (max-width:880px){
   nav{display:none;}
   .hero-grid{grid-template-columns:1fr;gap:40px;}
@@ -329,6 +367,8 @@ footer.site-footer a:hover,footer.site-footer button:hover{color:var(--brass);}
 }
 @media (max-width:560px){
   .car-grid{grid-template-columns:1fr;}
+  .lang-switch{padding:2px;}
+  .lang-switch button{height:30px;min-width:32px;padding:0 6px;font-size:12px;}
   .header-inner{padding:14px 20px;}
   .wrap{padding:0 20px;}
   .admin-page{padding:28px 0 60px;}
@@ -338,8 +378,65 @@ footer.site-footer a:hover,footer.site-footer button:hover{color:var(--brass);}
   .dash-table th,.dash-table td{padding:10px 6px;}
   .dash-table .dash-ref{display:none;}
   .dash-totals .box{padding:12px 16px;flex:1 1 40%;}
+  .dash-report th:nth-child(2),.dash-report td:nth-child(2),.dash-report th:nth-child(3),.dash-report td:nth-child(3){width:78px;}
+  .dash-report td.dash-num{padding-top:10px;}
   .hero-review-card{padding:24px 22px;}
   .hrc-num{font-size:80px;}
   .hrc-top{flex-wrap:wrap;}
   .options-grid{grid-template-columns:1fr;}
 }
+@media (max-width:400px){
+  .header-inner{gap:12px;}
+  .lang-switch button{min-width:28px;padding:0 4px;font-size:11.5px;}
+}
+
+/* Zone desservie (page d'accueil) : texte local + communes voisines. */
+.area{padding:56px 0;border-top:1px solid var(--line);}
+.area h2{font-size:clamp(26px,3vw,34px);color:var(--cream);margin-bottom:12px;}
+.area p{color:var(--cream-dim);max-width:720px;font-size:15px;line-height:1.6;margin:0;}
+.area .area-label{margin-top:22px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;}
+.area-towns{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0;padding:0;}
+.area-towns li{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13.5px;color:var(--cream);background:rgba(242,237,226,0.04);}
+
+/* Graphique des visites par jour (tableau de bord). */
+.visits-chart{margin:22px 0 0;}
+.visits-chart figcaption{color:var(--brass);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:0 8px 10px;}
+.visits-chart svg{display:block;width:100%;height:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;}
+.visits-chart .grid{stroke:var(--line);stroke-width:1;}
+.visits-chart .axis{fill:var(--cream-dim);font-family:'IBM Plex Mono',monospace;font-size:11px;}
+.visits-chart .bar .value{fill:var(--brass);}
+.visits-chart .bar .hit{fill:transparent;}
+.visits-chart .bar:hover .hit{fill:rgba(242,237,226,0.06);}
+.visits-chart .bar:hover .value{fill:#e0b85a;}
+
+/* Page admin « Diffuser » : une carte par plateforme d'annonces. */
+.listing-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.listing-card{border:1px solid var(--line);border-left:3px solid var(--line);border-radius:4px;background:var(--panel-2);padding:18px 20px;margin-top:16px;}
+.listing-card.status-a_jour{border-left-color:#5fa777;}
+.listing-card.status-a_mettre_a_jour{border-left-color:var(--brass);}
+.listing-card.status-a_retirer{border-left-color:#c8553d;}
+.listing-card header{position:static;background:none;border:0;backdrop-filter:none;z-index:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.listing-card h3{font-size:18px;color:var(--cream);margin:0;}
+.listing-status{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--cream-dim);}
+.status-a_jour .listing-status{color:#8fd0a5;border-color:#5fa777;}
+.status-a_mettre_a_jour .listing-status{color:var(--text-dark);background:var(--brass);border-color:var(--brass);}
+.status-a_retirer .listing-status{color:#fff;background:#c8553d;border-color:#c8553d;}
+.listing-open{margin-left:auto;font-size:13px;color:var(--cream-dim);}
+.listing-open:hover{color:var(--brass);}
+.listing-hint{color:var(--cream);font-size:13.5px;background:rgba(195,154,61,0.10);border:1px solid var(--brass-dim);border-radius:4px;padding:10px 12px;margin:0 0 12px;}
+.listing-field{margin-bottom:12px;}
+.listing-field label{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--cream-dim);margin-bottom:5px;}
+.listing-copy{display:flex;gap:8px;align-items:center;}
+.listing-copy.top{align-items:flex-start;}
+.listing-copy input,.listing-copy textarea{flex:1;min-width:0;font-size:13px;}
+.listing-copy textarea{resize:vertical;line-height:1.5;}
+.listing-copy .btn-small{flex:none;}
+.listing-card footer{background:none;border:0;padding:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;}
+.listing-card footer input{flex:1;min-width:220px;font-size:13px;}
+.btn-small.solid{background:var(--brass);border-color:var(--brass);color:var(--text-dark);font-weight:600;}
+.btn-small.solid:hover{color:var(--text-dark);background:#d4ab4c;}
+.dash-diffusion{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap;}
+.dash-diffusion .dot{width:8px;height:8px;border-radius:50%;background:var(--line);}
+.dash-diffusion.todo .dot{background:var(--brass);}
+.dash-diffusion.ok .dot{background:#5fa777;}
+.dash-diffusion:hover{color:var(--brass);}

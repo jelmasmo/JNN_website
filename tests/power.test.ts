@@ -24,6 +24,11 @@ describe("powerLabel", () => {
     expect(powerLabel(85)).toBe("85 kW (116 ch)");
   });
 
+  it("utilise l'abréviation des chevaux de la langue du visiteur", () => {
+    expect(powerLabel(85, "nl")).toBe("85 kW (116 pk)");
+    expect(powerLabel(85, "en")).toBe("85 kW (116 hp)");
+  });
+
   it("retourne un tiret si la puissance est inconnue", () => {
     expect(powerLabel(null)).toBe("—");
     expect(powerLabel(undefined)).toBe("—");

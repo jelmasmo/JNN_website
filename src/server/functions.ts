@@ -1,6 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest, getRequestHeader } from "@tanstack/react-start/server";
 import { env } from "cloudflare:workers";
-import { listVehicles, listAllVehicles, getVehicle, saveVehicle, deleteVehicle, markVehicleSold } from "./vehicles";
+import {
+  listVehicles,
+  listAllVehicles,
+  getVehicle,
+  saveVehicle,
+  deleteVehicle,
+  markVehicleSold,
+  translateMissingVehicles,
+} from "./vehicles";
+import { workersAiTranslator } from "./workersAiTranslator";
+import { languageRedirect } from "~/lib/langPath";
 import type { VehicleInput } from "./vehicles";
 import { listReviews, listFeaturedReviews } from "./reviews";
 import { runWithDb } from "./runtime";
@@ -8,6 +19,8 @@ import { checkCredentials, issueToken, verifyToken, setPassword, hashPassword } 
 import { uploadPhotoToR2, listSoldPhotos, addSoldPhoto, removeSoldPhoto } from "./photos";
 import { bumpStat as bumpStatEffect, listStats } from "./stats";
 import { getSettings, updateSettings } from "./settings";
+import { listListings, publishVehicleListing, removeListing } from "./listings";
+import { recordVisit as recordVisitEffect, visitReport, type VisitEventType } from "./visits";
 
 // Fonctions serveur TanStack Start : appelées comme de simples fonctions
 // async depuis les composants React, mais exécutées côté Worker
@@ -18,12 +31,16 @@ interface CloudflareEnv {
   PHOTOS: R2Bucket;
   PHOTOS_PUBLIC_URL: string;
   ADMIN_SESSION_SECRET: string;
+  AI: Ai;
 }
 function cfEnv(): CloudflareEnv {
   return env as unknown as CloudflareEnv;
 }
 function db() {
   return cfEnv().DB;
+}
+function translator() {
+  return workersAiTranslator(cfEnv().AI);
 }
 
 /** Lève une erreur si le jeton admin fourni n'est pas valide. */
@@ -55,6 +72,21 @@ export const getFeaturedReviews = createServerFn({ method: "GET" }).handler(asyn
   return runWithDb(db(), listFeaturedReviews);
 });
 
+/**
+ * Adresse vers laquelle renvoyer un visiteur arrivé sur une page française
+ * alors que son choix mémorisé (cookie du sélecteur) ou son navigateur
+ * demande le néerlandais ou l'anglais ; null sinon (voir languageRedirect).
+ */
+export const getLanguageRedirect = createServerFn({ method: "GET" })
+  .validator((pathname: string) => pathname)
+  .handler(async ({ data: pathname }) => {
+    return languageRedirect({
+      pathname,
+      acceptLanguage: getRequestHeader("accept-language"),
+      cookie: getRequestHeader("cookie"),
+    });
+  });
+
 /** Coordonnées de contact (téléphone, e-mail, adresse) — lecture publique. */
 export const getSiteSettings = createServerFn({ method: "GET" }).handler(async () => {
   return runWithDb(db(), getSettings);
@@ -64,6 +96,38 @@ export const recordVehicleEvent = createServerFn({ method: "POST" })
   .validator((data: { vehicleId: string; field: "views" | "contacts" }) => data)
   .handler(async ({ data }) => {
     await runWithDb(db(), bumpStatEffect(data.vehicleId, data.field));
+    return { ok: true };
+  });
+
+/**
+ * Enregistre une page vue ou une prise de contact pour le rapport de
+ * provenance (voir ./visits.ts). La ville et le pays sont l'estimation
+ * fournie par Cloudflare pour la requête ; aucune adresse IP n'est gardée.
+ */
+export const recordVisit = createServerFn({ method: "POST" })
+  .validator(
+    (data: {
+      eventType: VisitEventType;
+      vehicleId: string | null;
+      path: string;
+      referrer: string;
+      src: string | null;
+      isEntry: boolean;
+    }) => data
+  )
+  .handler(async ({ data }) => {
+    const request = getRequest();
+    const cf = (request as unknown as { cf?: { country?: string; city?: string; region?: string } }).cf;
+    await runWithDb(
+      db(),
+      recordVisitEffect({
+        ...data,
+        siteHost: new URL(request.url).hostname,
+        country: cf?.country ?? getRequestHeader("cf-ipcountry") ?? null,
+        city: cf?.city ?? null,
+        region: cf?.region ?? null,
+      })
+    );
     return { ok: true };
   });
 
@@ -114,8 +178,17 @@ export const adminSaveVehicle = createServerFn({ method: "POST" })
   .validator((data: { token: string; isNew: boolean; originalId?: string; vehicle: VehicleInput }) => data)
   .handler(async ({ data }) => {
     await assertAdmin(data.token);
-    await runWithDb(db(), saveVehicle(data));
+    await runWithDb(db(), saveVehicle(data, translator()));
     return { ok: true };
+  });
+
+/** Traduit en néerlandais et en anglais les annonces qui ne le sont pas encore. */
+export const adminTranslateVehicles = createServerFn({ method: "POST" })
+  .validator((data: { token: string }) => data)
+  .handler(async ({ data }) => {
+    await assertAdmin(data.token);
+    const count = await runWithDb(db(), translateMissingVehicles(translator()));
+    return { count };
   });
 
 export const adminDeleteVehicle = createServerFn({ method: "POST" })
@@ -139,6 +212,42 @@ export const adminGetStats = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await assertAdmin(data.token);
     return runWithDb(db(), listStats());
+  });
+
+/** Rapport de provenance des `days` derniers jours, pour le tableau de bord. */
+export const adminGetVisitReport = createServerFn({ method: "POST" })
+  .validator((data: { token: string; days: number }) => data)
+  .handler(async ({ data }) => {
+    await assertAdmin(data.token);
+    return runWithDb(db(), visitReport(data.days));
+  });
+
+/* ---------- ADMIN : diffusion des annonces sur les plateformes ---------- */
+
+export const adminListListings = createServerFn({ method: "POST" })
+  .validator((data: { token: string }) => data)
+  .handler(async ({ data }) => {
+    await assertAdmin(data.token);
+    return runWithDb(db(), listListings());
+  });
+
+/** Note l'annonce comme publiée (ou remise à jour) sur une plateforme. */
+export const adminPublishListing = createServerFn({ method: "POST" })
+  .validator((data: { token: string; vehicleId: string; platform: string; listingUrl: string | null }) => data)
+  .handler(async ({ data }) => {
+    await assertAdmin(data.token);
+    const ok = await runWithDb(db(), publishVehicleListing(data.vehicleId, data.platform, data.listingUrl));
+    if (!ok) throw new Error("Ce véhicule n'existe plus.");
+    return { ok: true };
+  });
+
+/** Note l'annonce comme retirée d'une plateforme. */
+export const adminRemoveListing = createServerFn({ method: "POST" })
+  .validator((data: { token: string; vehicleId: string; platform: string }) => data)
+  .handler(async ({ data }) => {
+    await assertAdmin(data.token);
+    await runWithDb(db(), removeListing(data.vehicleId, data.platform));
+    return { ok: true };
   });
 
 export const adminUpdateSettings = createServerFn({ method: "POST" })

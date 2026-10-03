@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { nextSlide } from "~/lib/carousel";
 import type { Review } from "~/server/reviews";
+import { useLang, useT } from "~/lib/lang";
 
 const ROTATE_MS = 7000;
 
@@ -16,6 +17,8 @@ function Star({ size }: { size: number }) {
 /** Carte d'avis du haut de page : note AutoScout24 + un avis client qui défile. */
 export function HeroReviewCard({ reviews }: { reviews: Review[] }) {
   const [index, setIndex] = useState(0);
+  const lang = useLang();
+  const tr = useT();
 
   useEffect(() => {
     if (reviews.length < 2) return;
@@ -28,20 +31,20 @@ export function HeroReviewCard({ reviews }: { reviews: Review[] }) {
   return (
     <article className="hero-review-card">
       <div className="hrc-top">
-        <span className="hrc-source">Avis vérifiés · AutoScout24</span>
-        <span className="hrc-reco">100 % recommandent</span>
+        <span className="hrc-source">{tr("hrc.source")}</span>
+        <span className="hrc-reco">{tr("hrc.reco")}</span>
       </div>
 
       <div className="hrc-score">
-        <div className="hrc-num">4,8</div>
+        <div className="hrc-num">{lang === "fr" ? "4,8" : "4.8"}</div>
         <div className="hrc-score-side">
-          <span className="hrc-stars" aria-label="5 étoiles sur 5">
+          <span className="hrc-stars" aria-label={tr("hrc.starsAria")}>
             {[0, 1, 2, 3, 4].map((i) => (
               <Star key={i} size={22} />
             ))}
           </span>
           <span className="hrc-count">
-            sur 5 · <b>73 avis clients</b>
+            {tr("hrc.outOf")} <b>{tr("hrc.count", { count: 73 })}</b>
           </span>
         </div>
       </div>
@@ -68,14 +71,14 @@ export function HeroReviewCard({ reviews }: { reviews: Review[] }) {
               key={r.id}
               type="button"
               className={i === index ? "active" : undefined}
-              aria-label={`Afficher l'avis ${i + 1}`}
+              aria-label={tr("hrc.showReview", { n: i + 1 })}
               aria-current={i === index ? "true" : undefined}
               onClick={() => setIndex(i)}
             />
           ))}
         </div>
         <Link to="/avis" className="hrc-link">
-          Lire les 73 avis
+          {tr("hrc.readAll", { count: 73 })}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>

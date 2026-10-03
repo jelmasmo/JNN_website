@@ -1,12 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { useLang, useT } from "~/lib/lang";
+import { localizePath } from "~/lib/langPath";
 
 /**
  * Page « introuvable » aux couleurs de JNN. `vehicle` : variante affichée
  * quand une fiche véhicule n'existe plus (souvent parce qu'il a été vendu).
  */
 export function NotFound({ vehicle = false }: { vehicle?: boolean }) {
+  const tr = useT();
+  const lang = useLang();
+  const k = vehicle ? "vehicle" : "page";
   return (
     <>
       <Header />
@@ -15,32 +20,22 @@ export function NotFound({ vehicle = false }: { vehicle?: boolean }) {
           <span className="notfound-code" aria-hidden="true">
             404
           </span>
-          <span className="eyebrow">{vehicle ? "Annonce indisponible" : "Page introuvable"}</span>
+          <span className="eyebrow">{tr(`nf.${k}Eyebrow`)}</span>
           <h1>
-            {vehicle ? (
-              <>
-                Ce véhicule a <em>déjà trouvé preneur</em>.
-              </>
-            ) : (
-              <>
-                Mauvais <em>virage</em>.
-              </>
-            )}
+            {tr(`nf.${k}TitleBefore`)}
+            <em>{tr(`nf.${k}TitleEm`)}</em>
+            {tr(`nf.${k}TitleAfter`)}
           </h1>
-          <p>
-            {vehicle
-              ? "Cette annonce n'est plus en ligne : le véhicule a probablement été vendu. D'autres occasions choisies vous attendent dans notre stock."
-              : "La page que vous cherchez n'existe pas ou a été déplacée. Nos véhicules, eux, sont toujours là."}
-          </p>
+          <p>{tr(`nf.${k}Text`)}</p>
           <div className="hero-ctas">
-            <a href="/#stock" className="btn-primary">
-              Voir le stock
+            <a href={`${localizePath("/", lang)}#stock`} className="btn-primary">
+              {tr("home.seeStock")}
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
             </a>
             <Link to="/" className="btn-ghost">
-              Retour à l'accueil
+              {tr("nf.home")}
             </Link>
           </div>
         </div>

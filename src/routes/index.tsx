@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   getVehiclesList,
   getFeaturedReviews,
@@ -14,6 +14,10 @@ import { HeroReviewCard } from "~/components/HeroReviewCard";
 import { appointmentWhatsAppUrl } from "~/lib/contactLinks";
 import { useHasAdminToken } from "~/lib/adminSession";
 import { useSiteSettings } from "~/lib/siteSettings";
+import { useLang, useT } from "~/lib/lang";
+import { nearbyTowns } from "~/lib/area";
+import { trackVisit, useTrackPageView } from "~/lib/visitTracking";
+import type { MessageKey } from "~/lib/messages";
 import type { VehicleView } from "~/server/vehicles";
 
 export const Route = createFileRoute("/")({
@@ -34,6 +38,11 @@ function HomePage() {
   const [activeFilter, setActiveFilter] = useState<string>("tous");
   const isAdmin = useHasAdminToken();
   const settings = useSiteSettings();
+  const lang = useLang();
+  const tr = useT();
+  const score = (4.8).toLocaleString(lang === "fr" ? "fr-BE" : lang === "nl" ? "nl-BE" : "en-GB");
+
+  useTrackPageView("home_view");
 
   const list = vehicles.filter((v) => activeFilter === "tous" || v.type === activeFilter);
   const photos = soldPhotos.map((p) => p.url);
@@ -56,29 +65,37 @@ function HomePage() {
                   ))}
                 </div>
               </div>
-              <div className="hero-panorama-badge">Véhicules vendus par JNN</div>
+              <div className="hero-panorama-badge">{tr("home.soldBadge")}</div>
             </>
           )}
           <div className="wrap hero-grid">
             <div className="hero-copy">
-              <span className="eyebrow">Vendeur professionnel — {settings.address}</span>
+              <span className="eyebrow">{tr("home.eyebrow", { address: settings.address })}</span>
               <h1>
-                Des occasions choisies.
+                {tr("home.title1")}
                 <br />
-                Pas <em>improvisées</em>.
+                {tr("home.title2Before")}
+                <em>{tr("home.title2Em")}</em>
+                {tr("home.title2After")}
               </h1>
-              <p>Chaque véhicule qui entre chez JNN est vérifié, préparé et vendu avec la même exigence.</p>
+              <p>{tr("home.lead")}</p>
               <div className="hero-ctas">
                 <a href="#stock" className="btn-primary">
-                  Voir le stock
+                  {tr("home.seeStock")}
                   <span className="cta-count">{vehicles.length}</span>
                 </a>
-                <a href={appointmentWhatsAppUrl(settings.phone)} target="_blank" rel="noreferrer" className="btn-ghost">
-                  Prendre rendez-vous
+                <a
+                  href={appointmentWhatsAppUrl(settings.phone, lang)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-ghost"
+                  onClick={() => trackVisit("contact_whatsapp")}
+                >
+                  {tr("home.appointment")}
                 </a>
               </div>
               <ul className="hero-perks">
-                {["Faible kilométrage", "Excellent état", "Souvent 1er propriétaire"].map((perk) => (
+                {[tr("home.perkLowKm"), tr("home.perkCondition"), tr("home.perkFirstOwner")].map((perk) => (
                   <li key={perk}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M20 6L9 17l-5-5" />
@@ -96,18 +113,18 @@ function HomePage() {
           <div className="wrap">
             <div className="section-head">
               <div>
-                <h2>Le stock actuel</h2>
-                <p>Cliquez sur un véhicule pour voir la fiche complète, les photos et les équipements.</p>
+                <h2>{tr("stock.title")}</h2>
+                <p>{tr("stock.lead")}</p>
               </div>
               <span className="tag-count">
-                {list.length} {list.length === 1 ? "véhicule disponible" : "véhicules disponibles"}
+                {tr(list.length === 1 ? "stock.countOne" : "stock.countMany", { count: list.length })}
               </span>
             </div>
             <div className="highlight-strip">
               🔑{" "}
               <span>
-                <b>Chez JNN</b>, nous privilégions les véhicules à faible kilométrage, en excellent
-                état, provenant le plus souvent d'un premier propriétaire.
+                <b>{tr("stock.highlightBold")}</b>
+                {tr("stock.highlightText")}
               </span>
             </div>
             <div className="filters">
@@ -118,7 +135,7 @@ function HomePage() {
                     className={`filter-btn${activeFilter === f.key ? " active" : ""}`}
                     onClick={() => setActiveFilter(f.key)}
                   >
-                    {f.label}
+                    {tr(`filter.${f.key}` as MessageKey)}
                   </button>
                 ))}
               </div>
@@ -140,29 +157,26 @@ function HomePage() {
           <div className="wrap">
             <div className="section-head">
               <div>
-                <h2>Ce que disent nos clients</h2>
-                <p>Avis publiés par des clients ayant réellement acheté un véhicule chez JNN, recueillis sur AutoScout24.</p>
+                <h2>{tr("reviews.title")}</h2>
+                <p>{tr("reviews.lead")}</p>
               </div>
             </div>
             <div className="avis-top">
               <div className="score-block">
                 <div className="score-num">
-                  4.8<span style={{ fontSize: 26, color: "var(--cream-dim)" }}>/5</span>
+                  {score}<span style={{ fontSize: 26, color: "var(--cream-dim)" }}>/5</span>
                 </div>
                 <div className="score-stars">★★★★★</div>
-                <div className="score-sub">73 évaluations — 100% de recommandations</div>
+                <div className="score-sub">{tr("reviews.scoreSub", { count: 73 })}</div>
               </div>
               <div>
                 <p style={{ color: "var(--cream-dim)", fontSize: 15, margin: "0 0 6px" }}>
-                  Les clients évaluent systématiquement JNN sur les points suivants :
+                  {tr("reviews.criteriaIntro")}
                 </p>
                 <div className="criteria-list">
-                  <span>Impression générale</span>
-                  <span>Disponibilité</span>
-                  <span>Fiabilité</span>
-                  <span>Description de l'offre</span>
-                  <span>Processus d'achat</span>
-                  <span>Conseil</span>
+                  {(["reviews.criterion1", "reviews.criterion2", "reviews.criterion3", "reviews.criterion4", "reviews.criterion5", "reviews.criterion6"] as const).map((k) => (
+                    <span key={k}>{tr(k)}</span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -181,57 +195,72 @@ function HomePage() {
               </div>
             </div>
             <div style={{ textAlign: "center", marginTop: 26 }}>
-              <a href="/avis" className="btn-primary">
-                Voir les 73 avis clients →
-              </a>
+              <Link to="/avis" className="btn-primary">
+                {tr("reviews.seeAll", { count: 73 })}
+              </Link>
             </div>
             <p style={{ fontSize: 12, color: "var(--cream-dim)", marginTop: 18, opacity: 0.7, textAlign: "center" }}>
-              Avis vérifiés, extraits de la page d'évaluations AutoScout24 de JNN.
+              {tr("reviews.verified")} {tr("reviews.originalLanguage")}
             </p>
           </div>
         </section>
 
         <BizCardSection />
 
+        {/* Zone desservie : situe JNN par rapport aux communes voisines,
+            pour les visiteurs comme pour la recherche locale de Google. */}
+        <section id="zone" className="area">
+          <div className="wrap">
+            <h2>{tr("area.title")}</h2>
+            <p>{tr("area.text")}</p>
+            <p className="area-label">{tr("area.townsLabel")}</p>
+            <ul className="area-towns">
+              {nearbyTowns(lang).map((town) => (
+                <li key={town}>{town}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section id="contact">
           <div className="wrap contact-grid">
             <div>
               <h2>
-                Venez voir
+                {tr("contact.title1")}
                 <br />
-                la voiture en vrai
+                {tr("contact.title2")}
               </h2>
               <div className="contact-line">
                 <div>
-                  <strong>Adresse</strong>
+                  <strong>{tr("contact.address")}</strong>
                   {settings.address}
                 </div>
               </div>
               <div className="contact-line">
                 <div>
-                  <strong>Téléphone</strong>
+                  <strong>{tr("contact.phone")}</strong>
                   <a href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}>{settings.phone}</a>
                 </div>
               </div>
               <div className="contact-line">
                 <div>
-                  <strong>Horaires</strong>
-                  Du lundi au samedi — sur rendez-vous de préférence
+                  <strong>{tr("contact.hours")}</strong>
+                  {tr("contact.hoursText")}
                 </div>
               </div>
               <a href="#stock" className="btn-primary" style={{ display: "inline-block", marginTop: 10 }}>
-                Voir le stock
+                {tr("home.seeStock")}
               </a>
             </div>
             <div className="map-box">
               <iframe
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(settings.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(settings.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed&hl=${lang}`}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title={`Localisation JNN — ${settings.address}`}
+                title={tr("contact.mapTitle", { address: settings.address })}
               />
             </div>
           </div>

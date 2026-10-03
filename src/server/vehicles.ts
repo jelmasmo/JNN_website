@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 import { query, run } from "./db";
+import { TRANSLATED_LANGS, type ListingTranslations, type Translator } from "./translation";
 
 export interface Vehicle {
   id: string;
@@ -16,21 +17,25 @@ export interface Vehicle {
   description: string | null;
   options_json: string;
   images_json: string;
+  translations_json: string;
   position: number;
   sold_at: string | null;
 }
 
-export interface VehicleView extends Omit<Vehicle, "options_json" | "images_json"> {
+export interface VehicleView extends Omit<Vehicle, "options_json" | "images_json" | "translations_json"> {
   options: string[];
   images: string[];
+  /** Textes de l'annonce traduits automatiquement (absents si pas encore traduits). */
+  translations: ListingTranslations;
 }
 
 function toView(v: Vehicle): VehicleView {
-  const { options_json, images_json, ...rest } = v;
+  const { options_json, images_json, translations_json, ...rest } = v;
   return {
     ...rest,
     options: JSON.parse(options_json || "[]"),
     images: JSON.parse(images_json || "[]"),
+    translations: JSON.parse(translations_json || "{}"),
   };
 }
 
@@ -176,7 +181,7 @@ export interface SaveVehicleRequest {
  * Enregistre le formulaire admin : création ou modification, en refusant
  * toute référence déjà prise par un autre véhicule.
  */
-export function saveVehicle({ isNew, originalId, vehicle }: SaveVehicleRequest) {
+export function saveVehicle({ isNew, originalId, vehicle }: SaveVehicleRequest, translate?: Translator) {
   return Effect.gen(function* () {
     originalId ??= vehicle.id;
     if (isNew || vehicle.id !== originalId) {
@@ -187,5 +192,52 @@ export function saveVehicle({ isNew, originalId, vehicle }: SaveVehicleRequest) 
     }
     if (isNew) yield* createVehicle(vehicle);
     else yield* updateVehicle(originalId, vehicle);
+    if (translate) yield* storeTranslations(vehicle, translate);
+  });
+}
+
+/**
+ * Traduit les textes libres de l'annonce en néerlandais et en anglais et les
+ * enregistre. Une langue dont la traduction échoue (service indisponible…)
+ * n'est pas enregistrée : l'annonce s'affiche alors en français dans cette
+ * langue, plutôt qu'avec une ancienne traduction qui ne correspondrait plus.
+ */
+function storeTranslations(vehicle: TranslatableVehicle, translate: Translator) {
+  return Effect.gen(function* () {
+    const source = {
+      sub: vehicle.sub ?? "",
+      color: vehicle.color ?? "",
+      description: vehicle.description ?? "",
+      options: vehicle.options,
+    };
+    const results = yield* Effect.promise(() =>
+      Promise.allSettled(TRANSLATED_LANGS.map((lang) => translate(source, lang)))
+    );
+    const translations: ListingTranslations = {};
+    TRANSLATED_LANGS.forEach((lang, i) => {
+      const result = results[i];
+      if (result.status === "fulfilled") translations[lang] = result.value;
+    });
+    yield* run("UPDATE vehicles SET translations_json = ? WHERE id = ?", [JSON.stringify(translations), vehicle.id]);
+    return TRANSLATED_LANGS.every((lang) => translations[lang]);
+  });
+}
+
+type TranslatableVehicle = Pick<VehicleView, "id" | "sub" | "color" | "description" | "options">;
+
+/**
+ * Traduit les annonces du stock qui n'ont pas encore leur traduction dans
+ * toutes les langues (annonces créées avant la traduction automatique, ou
+ * dont la traduction avait échoué). Renvoie le nombre d'annonces traduites.
+ */
+export function translateMissingVehicles(translate: Translator) {
+  return Effect.gen(function* () {
+    const vehicles = yield* listVehicles;
+    let translated = 0;
+    for (const v of vehicles) {
+      if (TRANSLATED_LANGS.every((lang) => v.translations[lang])) continue;
+      if (yield* storeTranslations(v, translate)) translated++;
+    }
+    return translated;
   });
 }

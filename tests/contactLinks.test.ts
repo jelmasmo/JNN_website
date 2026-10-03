@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildVCard, cardShareText, appointmentWhatsAppUrl, vehicleWhatsAppUrl, vehicleMailUrl, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
+import { generalWhatsAppUrl, buildVCard, cardShareText, appointmentWhatsAppUrl, vehicleWhatsAppUrl, vehicleMailUrl, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
 
 const settings = { phone: "+32 471 11 22 33", email: "contact@jnn.be", address: "Rue Neuve 1, 1000 Bruxelles" };
 
@@ -122,3 +122,56 @@ describe("partage de la carte en image (menu de partage du téléphone)", () => 
     expect(text).toContain("https://jnn-drogenbos.be");
   });
 });
+
+describe("messages dans la langue du visiteur", () => {
+  it("un visiteur néerlandophone écrit à JNN en néerlandais au sujet d'un véhicule", () => {
+    const url = vehicleWhatsAppUrl(golf, settings.phone, PAGE, "", "nl");
+    expect(textParam(url, "text")).toBe("Goeiedag, ik ben geïnteresseerd in de VW Golf 7 (€ 12.500): " + PAGE);
+  });
+
+  it("un visiteur anglophone envoie un e-mail en anglais au sujet d'un véhicule", () => {
+    const params = new URLSearchParams(vehicleMailUrl(golf, settings.email, PAGE, "", "en").split("?")[1]);
+    expect(params.get("subject")).toBe("Interested in VW Golf 7 — Ref. GOLF7");
+    expect(params.get("body")).toBe(
+      "Hello,\n\nI would like more information about this vehicle:\nVW Golf 7 — €12,500\n" + PAGE
+    );
+  });
+
+  it("la demande de rendez-vous est rédigée en néerlandais pour un visiteur néerlandophone", () => {
+    expect(textParam(appointmentWhatsAppUrl(settings.phone, "nl"), "text")).toBe(
+      "Goeiedag, ik zou graag een afspraak maken om uw wagens bij JNN te komen bekijken."
+    );
+  });
+
+  it("le bouton WhatsApp de l'en-tête ouvre une conversation dans la langue du visiteur", () => {
+    const url = generalWhatsAppUrl(settings.phone, "en");
+    expect(url.startsWith("https://wa.me/32471112233?")).toBe(true);
+    expect(textParam(url, "text")).toBe("Hello, I'm contacting you about the vehicles available at JNN.");
+  });
+
+  it("la carte de visite partagée en image est présentée en anglais sur la version anglaise", () => {
+    const text = cardShareText(settings, "en");
+    expect(text.split("\n")[0]).toBe("Hello, here is my business card:");
+    expect(text).toContain("Edan — Used car sales");
+    expect(text).toContain("🚗 Our stock: https://jnn-drogenbos.be");
+  });
+
+  it("la carte envoyée par WhatsApp est rédigée en néerlandais sur la version néerlandaise", () => {
+    const text = textParam(shareCardWhatsAppUrl("0470 12 34 56", settings, "nl")!, "text")!;
+    expect(text.split("\n")[0]).toBe("Goeiedag 👋 Hier zijn mijn contactgegevens:");
+    expect(text).toContain("*JNN Drogenbos* — Tweedehandswagens");
+    expect(text).toContain("🚗 Ontdek ons aanbod:");
+  });
+
+  it("la carte envoyée par e-mail est rédigée en anglais sur la version anglaise", () => {
+    const params = new URLSearchParams(shareCardMailUrl("client@example.com", settings, "en")!.split("?")[1]);
+    expect(params.get("subject")).toBe("JNN contact details — used vehicles");
+    expect(params.get("body")).toContain("Phone: +32 471 11 22 33");
+    expect(params.get("body")).toContain("My business card: https://jnn-drogenbos.be/carte-jnn.jpg");
+  });
+
+  it("le fichier .vcf indique le métier dans la langue de la page", () => {
+    expect(buildVCard(settings, "nl").split("\n")).toContain("TITLE:Verkoop van tweedehandswagens");
+  });
+});
+

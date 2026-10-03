@@ -3,9 +3,12 @@ import { OWNER } from "~/lib/config";
 import { useSiteSettings } from "~/lib/siteSettings";
 import { buildVCard, cardShareText, shareCardWhatsAppUrl, shareCardMailUrl } from "~/lib/contactLinks";
 import { showToast } from "~/lib/toast";
+import { useLang, useT } from "~/lib/lang";
 
 export function BizCardSection() {
   const settings = useSiteSettings();
+  const lang = useLang();
+  const tr = useT();
   const [open, setOpen] = useState(false);
   const [waNumber, setWaNumber] = useState("");
   const [email, setEmail] = useState("");
@@ -25,36 +28,36 @@ export function BizCardSection() {
 
   async function shareImage() {
     const file = cardFile.current;
-    const data = { files: file ? [file] : [], title: "Carte de visite JNN", text: cardShareText(settings) };
+    const data = { files: file ? [file] : [], title: tr("biz.shareTitle"), text: cardShareText(settings, lang) };
     if (file && typeof navigator.canShare === "function" && navigator.canShare(data)) {
       try {
         await navigator.share(data);
       } catch (err) {
         if (err instanceof Error && err.name !== "AbortError") {
-          showToast("Le partage n'a pas pu s'ouvrir.", true);
+          showToast(tr("biz.shareFailed"), true);
         }
       }
       return;
     }
     // Ordinateur ou navigateur sans partage de fichiers : on ouvre l'image.
     window.open("/carte-jnn.jpg", "_blank");
-    showToast("Image ouverte : enregistrez-la pour l'envoyer en pièce jointe.");
+    showToast(tr("biz.imageOpened"));
   }
 
   function sendWhatsApp() {
-    const url = shareCardWhatsAppUrl(waNumber, settings);
-    if (!url) return showToast("Entrez le numéro WhatsApp du client.", true);
+    const url = shareCardWhatsAppUrl(waNumber, settings, lang);
+    if (!url) return showToast(tr("biz.waMissing"), true);
     window.open(url, "_blank");
   }
 
   function sendMail() {
-    const url = shareCardMailUrl(email, settings);
-    if (!url) return showToast("Entrez l'e-mail du client.", true);
+    const url = shareCardMailUrl(email, settings, lang);
+    if (!url) return showToast(tr("biz.emailMissing"), true);
     window.location.href = url;
   }
 
   function downloadVcf() {
-    const blob = new Blob([buildVCard(settings)], { type: "text/vcard" });
+    const blob = new Blob([buildVCard(settings, lang)], { type: "text/vcard" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -71,16 +74,16 @@ export function BizCardSection() {
         <div className="carte-frame">
           <div className="biz-card">
             <div>
-              <div className="bc-eyebrow">Carte professionnelle</div>
+              <div className="bc-eyebrow">{tr("biz.eyebrow")}</div>
               <div className="bc-logo">
                 JNN <span style={{ fontWeight: 500, color: "var(--cream-dim)", fontSize: "0.62em" }}>Drogenbos</span>
               </div>
-              <div className="bc-tag">Véhicules d'occasion</div>
+              <div className="bc-tag">{tr("biz.tag")}</div>
             </div>
             <div>
               <div className="bc-divider" />
               <div className="bc-name">{OWNER.name}</div>
-              <div className="bc-role">{OWNER.role}</div>
+              <div className="bc-role">{tr("biz.role")}</div>
               <div className="bc-line">
                 <b>ADR</b> {settings.address}
               </div>
@@ -107,16 +110,15 @@ export function BizCardSection() {
           </div>
         </div>
         <div>
-          <h2 style={{ fontSize: "clamp(28px,4vw,40px)" }}>Ma carte de visite</h2>
+          <h2 style={{ fontSize: "clamp(28px,4vw,40px)" }}>{tr("biz.title")}</h2>
           <p style={{ color: "var(--cream-dim)", fontSize: 15, maxWidth: 460 }}>
-            Partagez directement mes coordonnées à un client, par WhatsApp ou par e-mail — il suffit
-            d'entrer son numéro ou son adresse.
+            {tr("biz.lead")}
           </p>
           <button className="btn-primary" style={{ marginTop: 8 }} onClick={() => setOpen((o) => !o)}>
-            📇 Partager cette carte
+            {tr("biz.share")}
           </button>
           <div className={`share-panel${open ? " open" : ""}`}>
-            <label>Numéro WhatsApp du client (ex : 0470 12 34 56 ou +32 470 12 34 56)</label>
+            <label>{tr("biz.waLabel")}</label>
             <div className="share-row">
               <input
                 type="tel"
@@ -126,25 +128,25 @@ export function BizCardSection() {
                 onChange={(e) => setWaNumber(e.target.value)}
               />
               <button className="btn-whatsapp" onClick={sendWhatsApp}>
-                Envoyer par WhatsApp
+                {tr("biz.waSend")}
               </button>
             </div>
-            <label>E-mail du client</label>
+            <label>{tr("biz.emailLabel")}</label>
             <div className="share-row">
-              <input type="email" placeholder="client@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input type="email" placeholder={tr("biz.emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} />
               <button className="btn-mail" onClick={sendMail}>
-                Envoyer par e-mail
+                {tr("biz.emailSend")}
               </button>
             </div>
-            <label>Carte de visite en image (Mail, WhatsApp, SMS…)</label>
+            <label>{tr("biz.imageLabel")}</label>
             <div className="share-row">
               <button className="btn-primary" onClick={shareImage}>
-                📤 Envoyer la carte en image
+                {tr("biz.imageSend")}
               </button>
             </div>
             <div className="share-row">
               <button className="btn-small" onClick={downloadVcf}>
-                ⬇ Télécharger la carte (.vcf)
+                {tr("biz.vcf")}
               </button>
             </div>
           </div>

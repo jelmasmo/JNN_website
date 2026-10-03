@@ -97,6 +97,27 @@ de bord Cloudflare Pages (Workers & Pages → Créer → Pages → Connecter à
 Git). Chaque `git push` déclenche alors un déploiement automatique, avec
 une URL d'aperçu avant la mise en production.
 
+## Site en trois langues (FR / NL / EN)
+
+Le site public s'affiche en français, néerlandais (Belgique) ou anglais :
+
+- **Langue automatique** : celle du navigateur du visiteur (s'il demande
+  le néerlandais → NL, le français → FR, une autre langue → anglais).
+  Logique dans `src/lib/i18n.ts` (`detectLang`), testée.
+- **Sélecteur FR · NL · EN** dans l'en-tête : le choix est mémorisé un an
+  (cookie `jnn-lang`) et prime ensuite sur la langue du navigateur.
+- **Textes du site** : tous dans `src/lib/messages.ts` (le français sert de
+  référence ; la compilation échoue si une traduction manque).
+- **Annonces** : les textes saisis en français dans l'admin (sous-titre,
+  couleur, description, équipements) sont traduits automatiquement par
+  Workers AI à chaque enregistrement (binding `AI` dans `wrangler.toml`,
+  migration `0005_vehicle_translations.sql`). Les annonces créées avant se
+  traduisent via le bouton « Traduire les annonces maintenant » du tableau
+  de bord.
+- **Avis clients** : affichés dans leur langue d'origine (ce sont les vrais
+  avis AutoScout24).
+- **Espace admin** : reste en français.
+
 ## État actuel de la migration
 
 La maquette complète a été portée sur cette base TanStack Start + D1 :
